@@ -12,7 +12,25 @@
    "ja": "私は学生です",
    "romaji": "watashi wa gakusei desu",
    "vi": "Tôi là học sinh.",
-   "kana": "わたしはがくせいです"
+   "kana": "わたしはがくせいです",
+   "level": 1,
+   "viTokens": [
+    "Tôi",
+    "là",
+    "học sinh"
+   ],
+   "tokenRomaji": [
+    "watashi",
+    "wa",
+    "gakusei",
+    "desu"
+   ],
+   "tokenJa": [
+    "私",
+    "は",
+    "学生",
+    "です"
+   ]
   },
   {
    "id": "s02",
@@ -25,7 +43,25 @@
    "ja": "これは本です",
    "romaji": "kore wa hon desu",
    "vi": "Đây là quyển sách.",
-   "kana": "これはほんです"
+   "kana": "これはほんです",
+   "level": 1,
+   "viTokens": [
+    "Đây",
+    "là",
+    "quyển sách"
+   ],
+   "tokenRomaji": [
+    "kore",
+    "wa",
+    "hon",
+    "desu"
+   ],
+   "tokenJa": [
+    "これ",
+    "は",
+    "本",
+    "です"
+   ]
   },
   {
    "id": "s03",
@@ -40,7 +76,31 @@
    "ja": "それは私の傘です",
    "romaji": "sore wa watashi no kasa desu",
    "vi": "Đó là cái ô của tôi.",
-   "kana": "それはわたしのかさです"
+   "kana": "それはわたしのかさです",
+   "level": 3,
+   "viTokens": [
+    "Đó",
+    "là",
+    "cái ô",
+    "của",
+    "tôi"
+   ],
+   "tokenRomaji": [
+    "sore",
+    "wa",
+    "watashi",
+    "no",
+    "kasa",
+    "desu"
+   ],
+   "tokenJa": [
+    "それ",
+    "は",
+    "私",
+    "の",
+    "傘",
+    "です"
+   ]
   },
   {
    "id": "s04",
@@ -53,7 +113,25 @@
    "ja": "あれは何ですか",
    "romaji": "are wa nan desu ka",
    "vi": "Kia là cái gì?",
-   "kana": "あれはなんですか"
+   "kana": "あれはなんですか",
+   "level": 1,
+   "viTokens": [
+    "Kia",
+    "là",
+    "cái gì"
+   ],
+   "tokenRomaji": [
+    "are",
+    "wa",
+    "nan",
+    "desu ka"
+   ],
+   "tokenJa": [
+    "あれ",
+    "は",
+    "何",
+    "ですか"
+   ]
   },
   {
    "id": "s05",
@@ -67,7 +145,27 @@
    "ja": "私は水を飲みます",
    "romaji": "watashi wa mizu o nomimasu",
    "vi": "Tôi uống nước.",
-   "kana": "わたしはみずをのみます"
+   "kana": "わたしはみずをのみます",
+   "level": 2,
+   "viTokens": [
+    "Tôi",
+    "uống",
+    "nước"
+   ],
+   "tokenRomaji": [
+    "watashi",
+    "wa",
+    "mizu",
+    "o",
+    "nomimasu"
+   ],
+   "tokenJa": [
+    "私",
+    "は",
+    "水",
+    "を",
+    "飲みます"
+   ]
   },
   {
    "id": "s06",
@@ -81,7 +179,27 @@
    "ja": "私はご飯を食べます",
    "romaji": "watashi wa gohan o tabemasu",
    "vi": "Tôi ăn cơm.",
-   "kana": "わたしはごはんをたべます"
+   "kana": "わたしはごはんをたべます",
+   "level": 2,
+   "viTokens": [
+    "Tôi",
+    "ăn",
+    "cơm"
+   ],
+   "tokenRomaji": [
+    "watashi",
+    "wa",
+    "gohan",
+    "o",
+    "tabemasu"
+   ],
+   "tokenJa": [
+    "私",
+    "は",
+    "ご飯",
+    "を",
+    "食べます"
+   ]
   },
   {
    "id": "s07",
@@ -95,7 +213,27 @@
    "ja": "田中さんは先生です",
    "romaji": "tanaka san wa sensei desu",
    "vi": "Anh Tanaka là giáo viên.",
-   "kana": "たなかさんはせんせいです"
+   "kana": "たなかさんはせんせいです",
+   "level": 1,
+   "viTokens": [
+    "Anh Tanaka",
+    "là",
+    "giáo viên"
+   ],
+   "tokenRomaji": [
+    "tanaka",
+    "san",
+    "wa",
+    "sensei",
+    "desu"
+   ],
+   "tokenJa": [
+    "田中",
+    "さん",
+    "は",
+    "先生",
+    "です"
+   ]
   },
   {
    "id": "s08",
@@ -109,7 +247,27 @@
    "ja": "私は日本語を勉強します",
    "romaji": "watashi wa nihongo o benkyou shimasu",
    "vi": "Tôi học tiếng Nhật.",
-   "kana": "わたしはにほんごをべんきょうします"
+   "kana": "わたしはにほんごをべんきょうします",
+   "level": 2,
+   "viTokens": [
+    "Tôi",
+    "học",
+    "tiếng Nhật"
+   ],
+   "tokenRomaji": [
+    "watashi",
+    "wa",
+    "nihongo",
+    "o",
+    "benkyou shimasu"
+   ],
+   "tokenJa": [
+    "私",
+    "は",
+    "日本語",
+    "を",
+    "勉強します"
+   ]
   },
   {
    "id": "s09",
@@ -122,7 +280,25 @@
    "ja": "今日は暑いです",
    "romaji": "kyou wa atsui desu",
    "vi": "Hôm nay trời nóng.",
-   "kana": "きょうはあついです"
+   "kana": "きょうはあついです",
+   "level": 1,
+   "viTokens": [
+    "Hôm nay",
+    "trời",
+    "nóng"
+   ],
+   "tokenRomaji": [
+    "kyou",
+    "wa",
+    "atsui",
+    "desu"
+   ],
+   "tokenJa": [
+    "今日",
+    "は",
+    "暑い",
+    "です"
+   ]
   },
   {
    "id": "s10",
@@ -136,7 +312,27 @@
    "ja": "このりんごはおいしいです",
    "romaji": "kono ringo wa oishii desu",
    "vi": "Quả táo này ngon.",
-   "kana": "このりんごはおいしいです"
+   "kana": "このりんごはおいしいです",
+   "level": 1,
+   "viTokens": [
+    "Quả táo",
+    "này",
+    "ngon"
+   ],
+   "tokenRomaji": [
+    "kono",
+    "ringo",
+    "wa",
+    "oishii",
+    "desu"
+   ],
+   "tokenJa": [
+    "この",
+    "りんご",
+    "は",
+    "おいしい",
+    "です"
+   ]
   },
   {
    "id": "s11",
@@ -150,7 +346,28 @@
    "ja": "私は学校へ行きます",
    "romaji": "watashi wa gakkou e ikimasu",
    "vi": "Tôi đi đến trường.",
-   "kana": "わたしはがっこうへいきます"
+   "kana": "わたしはがっこうへいきます",
+   "level": 2,
+   "viTokens": [
+    "Tôi",
+    "đi",
+    "đến",
+    "trường"
+   ],
+   "tokenRomaji": [
+    "watashi",
+    "wa",
+    "gakkou",
+    "e",
+    "ikimasu"
+   ],
+   "tokenJa": [
+    "私",
+    "は",
+    "学校",
+    "へ",
+    "行きます"
+   ]
   },
   {
    "id": "s12",
@@ -164,7 +381,27 @@
    "ja": "私は家に帰ります",
    "romaji": "watashi wa uchi ni kaerimasu",
    "vi": "Tôi về nhà.",
-   "kana": "わたしはうちにかえります"
+   "kana": "わたしはうちにかえります",
+   "level": 2,
+   "viTokens": [
+    "Tôi",
+    "về",
+    "nhà"
+   ],
+   "tokenRomaji": [
+    "watashi",
+    "wa",
+    "uchi",
+    "ni",
+    "kaerimasu"
+   ],
+   "tokenJa": [
+    "私",
+    "は",
+    "家",
+    "に",
+    "帰ります"
+   ]
   },
   {
    "id": "s13",
@@ -177,7 +414,26 @@
    "ja": "明日友達に会います",
    "romaji": "ashita tomodachi ni aimasu",
    "vi": "Ngày mai tôi gặp bạn.",
-   "kana": "あしたともだちにあいます"
+   "kana": "あしたともだちにあいます",
+   "level": 2,
+   "viTokens": [
+    "Ngày mai",
+    "tôi",
+    "gặp",
+    "bạn"
+   ],
+   "tokenRomaji": [
+    "ashita",
+    "tomodachi",
+    "ni",
+    "aimasu"
+   ],
+   "tokenJa": [
+    "明日",
+    "友達",
+    "に",
+    "会います"
+   ]
   },
   {
    "id": "s14",
@@ -191,7 +447,27 @@
    "ja": "私は猫が好きです",
    "romaji": "watashi wa neko ga suki desu",
    "vi": "Tôi thích mèo.",
-   "kana": "わたしはねこがすきです"
+   "kana": "わたしはねこがすきです",
+   "level": 2,
+   "viTokens": [
+    "Tôi",
+    "thích",
+    "mèo"
+   ],
+   "tokenRomaji": [
+    "watashi",
+    "wa",
+    "neko",
+    "ga",
+    "suki desu"
+   ],
+   "tokenJa": [
+    "私",
+    "は",
+    "猫",
+    "が",
+    "好きです"
+   ]
   },
   {
    "id": "s15",
@@ -205,7 +481,28 @@
    "ja": "犬は庭にいます",
    "romaji": "inu wa niwa ni imasu",
    "vi": "Con chó ở trong vườn.",
-   "kana": "いぬはにわにいます"
+   "kana": "いぬはにわにいます",
+   "level": 2,
+   "viTokens": [
+    "Con chó",
+    "ở",
+    "trong",
+    "vườn"
+   ],
+   "tokenRomaji": [
+    "inu",
+    "wa",
+    "niwa",
+    "ni",
+    "imasu"
+   ],
+   "tokenJa": [
+    "犬",
+    "は",
+    "庭",
+    "に",
+    "います"
+   ]
   },
   {
    "id": "s16",
@@ -221,7 +518,33 @@
    "ja": "机の上に本があります",
    "romaji": "tsukue no ue ni hon ga arimasu",
    "vi": "Có quyển sách ở trên bàn.",
-   "kana": "つくえのうえにほんがあります"
+   "kana": "つくえのうえにほんがあります",
+   "level": 3,
+   "viTokens": [
+    "Có",
+    "quyển sách",
+    "ở",
+    "trên",
+    "bàn"
+   ],
+   "tokenRomaji": [
+    "tsukue",
+    "no",
+    "ue",
+    "ni",
+    "hon",
+    "ga",
+    "arimasu"
+   ],
+   "tokenJa": [
+    "机",
+    "の",
+    "上",
+    "に",
+    "本",
+    "が",
+    "あります"
+   ]
   },
   {
    "id": "s17",
@@ -234,7 +557,25 @@
    "ja": "トイレはどこですか",
    "romaji": "toire wa doko desu ka",
    "vi": "Nhà vệ sinh ở đâu?",
-   "kana": "トイレはどこですか"
+   "kana": "トイレはどこですか",
+   "level": 1,
+   "viTokens": [
+    "Nhà vệ sinh",
+    "ở",
+    "đâu"
+   ],
+   "tokenRomaji": [
+    "toire",
+    "wa",
+    "doko",
+    "desu ka"
+   ],
+   "tokenJa": [
+    "トイレ",
+    "は",
+    "どこ",
+    "ですか"
+   ]
   },
   {
    "id": "s18",
@@ -247,7 +588,25 @@
    "ja": "これはいくらですか",
    "romaji": "kore wa ikura desu ka",
    "vi": "Cái này giá bao nhiêu?",
-   "kana": "これはいくらですか"
+   "kana": "これはいくらですか",
+   "level": 1,
+   "viTokens": [
+    "Cái này",
+    "giá",
+    "bao nhiêu"
+   ],
+   "tokenRomaji": [
+    "kore",
+    "wa",
+    "ikura",
+    "desu ka"
+   ],
+   "tokenJa": [
+    "これ",
+    "は",
+    "いくら",
+    "ですか"
+   ]
   },
   {
    "id": "s19",
@@ -260,7 +619,26 @@
    "ja": "お名前は何ですか",
    "romaji": "onamae wa nan desu ka",
    "vi": "Tên bạn là gì?",
-   "kana": "おなまえはなんですか"
+   "kana": "おなまえはなんですか",
+   "level": 1,
+   "viTokens": [
+    "Tên",
+    "bạn",
+    "là",
+    "gì"
+   ],
+   "tokenRomaji": [
+    "onamae",
+    "wa",
+    "nan",
+    "desu ka"
+   ],
+   "tokenJa": [
+    "お名前",
+    "は",
+    "何",
+    "ですか"
+   ]
   },
   {
    "id": "s20",
@@ -275,7 +653,30 @@
    "ja": "私は毎朝コーヒーを飲みます",
    "romaji": "watashi wa maiasa koohii o nomimasu",
    "vi": "Mỗi sáng tôi uống cà phê.",
-   "kana": "わたしはまいあさコーヒーをのみます"
+   "kana": "わたしはまいあさコーヒーをのみます",
+   "level": 3,
+   "viTokens": [
+    "Mỗi sáng",
+    "tôi",
+    "uống",
+    "cà phê"
+   ],
+   "tokenRomaji": [
+    "watashi",
+    "wa",
+    "maiasa",
+    "koohii",
+    "o",
+    "nomimasu"
+   ],
+   "tokenJa": [
+    "私",
+    "は",
+    "毎朝",
+    "コーヒー",
+    "を",
+    "飲みます"
+   ]
   },
   {
    "id": "s21",
@@ -289,7 +690,27 @@
    "ja": "私はテレビを見ます",
    "romaji": "watashi wa terebi o mimasu",
    "vi": "Tôi xem ti vi.",
-   "kana": "わたしはテレビをみます"
+   "kana": "わたしはテレビをみます",
+   "level": 2,
+   "viTokens": [
+    "Tôi",
+    "xem",
+    "ti vi"
+   ],
+   "tokenRomaji": [
+    "watashi",
+    "wa",
+    "terebi",
+    "o",
+    "mimasu"
+   ],
+   "tokenJa": [
+    "私",
+    "は",
+    "テレビ",
+    "を",
+    "見ます"
+   ]
   },
   {
    "id": "s22",
@@ -303,7 +724,27 @@
    "ja": "彼は日本人ではありません",
    "romaji": "kare wa nihonjin dewa arimasen",
    "vi": "Anh ấy không phải người Nhật.",
-   "kana": "かれはにほんじんではありません"
+   "kana": "かれはにほんじんではありません",
+   "level": 3,
+   "viTokens": [
+    "Anh ấy",
+    "không phải",
+    "người Nhật"
+   ],
+   "tokenRomaji": [
+    "kare",
+    "wa",
+    "nihonjin",
+    "dewa",
+    "arimasen"
+   ],
+   "tokenJa": [
+    "彼",
+    "は",
+    "日本人",
+    "では",
+    "ありません"
+   ]
   },
   {
    "id": "s23",
@@ -317,7 +758,28 @@
    "ja": "私はパンを食べません",
    "romaji": "watashi wa pan o tabemasen",
    "vi": "Tôi không ăn bánh mì.",
-   "kana": "わたしはパンをたべません"
+   "kana": "わたしはパンをたべません",
+   "level": 3,
+   "viTokens": [
+    "Tôi",
+    "không",
+    "ăn",
+    "bánh mì"
+   ],
+   "tokenRomaji": [
+    "watashi",
+    "wa",
+    "pan",
+    "o",
+    "tabemasen"
+   ],
+   "tokenJa": [
+    "私",
+    "は",
+    "パン",
+    "を",
+    "食べません"
+   ]
   },
   {
    "id": "s24",
@@ -328,7 +790,20 @@
    "ja": "ありがとうございます",
    "romaji": "arigatou gozaimasu",
    "vi": "Cảm ơn bạn.",
-   "kana": "ありがとうございます"
+   "kana": "ありがとうございます",
+   "level": 1,
+   "viTokens": [
+    "Cảm ơn",
+    "bạn"
+   ],
+   "tokenRomaji": [
+    "arigatou",
+    "gozaimasu"
+   ],
+   "tokenJa": [
+    "ありがとう",
+    "ございます"
+   ]
   },
   {
    "id": "s25",
@@ -339,7 +814,20 @@
    "ja": "おはようございます",
    "romaji": "ohayou gozaimasu",
    "vi": "Chào buổi sáng.",
-   "kana": "おはようございます"
+   "kana": "おはようございます",
+   "level": 1,
+   "viTokens": [
+    "Chào",
+    "buổi sáng"
+   ],
+   "tokenRomaji": [
+    "ohayou",
+    "gozaimasu"
+   ],
+   "tokenJa": [
+    "おはよう",
+    "ございます"
+   ]
   },
   {
    "id": "s26",
@@ -353,7 +841,28 @@
    "ja": "私はベトナム人です",
    "romaji": "watashi wa betonamu jin desu",
    "vi": "Tôi là người Việt Nam.",
-   "kana": "わたしはベトナムじんです"
+   "kana": "わたしはベトナムじんです",
+   "level": 1,
+   "viTokens": [
+    "Tôi",
+    "là",
+    "người",
+    "Việt Nam"
+   ],
+   "tokenRomaji": [
+    "watashi",
+    "wa",
+    "betonamu",
+    "jin",
+    "desu"
+   ],
+   "tokenJa": [
+    "私",
+    "は",
+    "ベトナム",
+    "人",
+    "です"
+   ]
   },
   {
    "id": "s27",
@@ -368,7 +877,30 @@
    "ja": "田中さんは日本から来ました",
    "romaji": "tanaka san wa nihon kara kimashita",
    "vi": "Anh Tanaka đến từ Nhật Bản.",
-   "kana": "たなかさんはにほんからきました"
+   "kana": "たなかさんはにほんからきました",
+   "level": 3,
+   "viTokens": [
+    "Anh Tanaka",
+    "đến",
+    "từ",
+    "Nhật Bản"
+   ],
+   "tokenRomaji": [
+    "tanaka",
+    "san",
+    "wa",
+    "nihon",
+    "kara",
+    "kimashita"
+   ],
+   "tokenJa": [
+    "田中",
+    "さん",
+    "は",
+    "日本",
+    "から",
+    "来ました"
+   ]
   },
   {
    "id": "s28",
@@ -384,7 +916,34 @@
    "ja": "私はバスで学校へ行きます",
    "romaji": "watashi wa basu de gakkou e ikimasu",
    "vi": "Tôi đi đến trường bằng xe buýt.",
-   "kana": "わたしはバスでがっこうへいきます"
+   "kana": "わたしはバスでがっこうへいきます",
+   "level": 3,
+   "viTokens": [
+    "Tôi",
+    "đi",
+    "đến",
+    "trường",
+    "bằng",
+    "xe buýt"
+   ],
+   "tokenRomaji": [
+    "watashi",
+    "wa",
+    "basu",
+    "de",
+    "gakkou",
+    "e",
+    "ikimasu"
+   ],
+   "tokenJa": [
+    "私",
+    "は",
+    "バス",
+    "で",
+    "学校",
+    "へ",
+    "行きます"
+   ]
   },
   {
    "id": "s29",
@@ -399,7 +958,31 @@
    "ja": "これは私の友達です",
    "romaji": "kore wa watashi no tomodachi desu",
    "vi": "Đây là bạn của tôi.",
-   "kana": "これはわたしのともだちです"
+   "kana": "これはわたしのともだちです",
+   "level": 1,
+   "viTokens": [
+    "Đây",
+    "là",
+    "bạn",
+    "của",
+    "tôi"
+   ],
+   "tokenRomaji": [
+    "kore",
+    "wa",
+    "watashi",
+    "no",
+    "tomodachi",
+    "desu"
+   ],
+   "tokenJa": [
+    "これ",
+    "は",
+    "私",
+    "の",
+    "友達",
+    "です"
+   ]
   }
  ]
 }

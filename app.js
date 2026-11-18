@@ -210,15 +210,20 @@ function render() {
   renderWords();
   $('#group-list').innerHTML=data.groups.length ? data.groups.map(g=>`<div class="row"><div><strong>${esc(g.name)}</strong><p>${data.words.filter(w=>w.groups.includes(g.id)).length} từ</p></div><div class="row-actions"><button data-rename="${esc(g.id)}">Đổi tên</button><button data-delete-group="${esc(g.id)}">Xóa</button></div></div>`).join('') : '<p>Chưa có nhóm nào. Tạo một nhóm để bắt đầu.</p>';
 }
+const pageSize=20; let wordPage=1;
 function renderWords() {
   const q=$('#search').value.trim().toLowerCase(), group=$('#filter-group').value;
   const words=data.words.filter(w=>(!group||w.groups.includes(group))&&[w.japanese,w.romaji,w.meaning].some(x=>x.toLowerCase().includes(q)));
-  $('#word-list').innerHTML=words.length ? words.map(w=>`<div class="row"><div><strong>${esc(w.japanese)}</strong> <span>${esc(w.romaji)}</span><p>${esc(w.meaning || 'Chưa có nghĩa tiếng Việt')}</p><div class="tags">${w.groups.map(g=>esc(data.groups.find(x=>x.id===g)?.name||'')).filter(Boolean).join(' · ')}</div></div><div class="row-actions"><button data-speak="${esc(w.id)}" aria-label="Phát âm ${esc(w.japanese)}">🔊</button><button data-edit="${esc(w.id)}">Sửa</button><button data-delete="${esc(w.id)}">Xóa</button></div></div>`).join('') : '<p>Chưa có từ phù hợp. Hãy thêm từ mới nhé.</p>';
+  const pages=Math.max(1,Math.ceil(words.length/pageSize)); wordPage=Math.min(Math.max(1,wordPage),pages);
+  const shown=words.slice((wordPage-1)*pageSize,wordPage*pageSize);
+  $('#word-list').innerHTML=shown.length ? shown.map(w=>`<div class="row"><div><strong>${esc(w.japanese)}</strong> <span>${esc(w.romaji)}</span><p>${esc(w.meaning || 'Chưa có nghĩa tiếng Việt')}</p><div class="tags">${w.groups.map(g=>esc(data.groups.find(x=>x.id===g)?.name||'')).filter(Boolean).join(' · ')}</div></div><div class="row-actions"><button data-speak="${esc(w.id)}" aria-label="Phát âm ${esc(w.japanese)}">🔊</button><button data-edit="${esc(w.id)}">Sửa</button><button data-delete="${esc(w.id)}">Xóa</button></div></div>`).join('') : '<p>Chưa có từ phù hợp. Hãy thêm từ mới nhé.</p>';
+  $('#word-pager').innerHTML=words.length>pageSize ? `<button type="button" class="secondary" data-page="prev" ${wordPage===1?'disabled':''}>← Trước</button><span>Trang ${wordPage}/${pages} · ${words.length} từ</span><button type="button" class="secondary" data-page="next" ${wordPage===pages?'disabled':''}>Sau →</button>` : words.length ? `<span>${words.length} từ</span>` : '';
 }
+$('#word-pager').onclick=e=>{ const b=e.target.closest('button'); if(!b||b.disabled)return; wordPage+=b.dataset.page==='next'?1:-1; renderWords(); $('#word-list').scrollIntoView?.({block:'start'}); };
 function pickVoice() { const ja=speechSynthesis.getVoices().filter(v=>v.lang.toLowerCase().replace('_','-').startsWith('ja')); return ja.find(v=>/google/i.test(v.name))||ja[0]; }
 function speak(text, rate=0.9) { if (!('speechSynthesis' in window)) return alert('Trình duyệt không hỗ trợ phát âm.'); const voice=pickVoice(); if (!voice) return alert('Thiết bị chưa có giọng đọc tiếng Nhật.'); const u=new SpeechSynthesisUtterance(text); u.lang='ja-JP'; u.voice=voice; u.rate=rate; speechSynthesis.cancel(); speechSynthesis.speak(u); }
-document.querySelector('nav').onclick=e=>{ const b=e.target.closest('[data-tab]'); if(!b)return; document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b)); document.querySelectorAll('.panel').forEach(x=>x.hidden=x.id!==b.dataset.tab); if(b.dataset.tab==='stats')renderStats(); };
-$('#search').oninput=renderWords; $('#filter-group').onchange=renderWords;
+document.querySelector('nav').onclick=e=>{ const b=e.target.closest('[data-tab]'); if(!b)return; document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b)); document.querySelectorAll('.panel').forEach(x=>x.hidden=x.id!==b.dataset.tab); if(b.dataset.tab==='stats')renderStats(); if(b.dataset.tab==='sentences'||b.dataset.tab==='pron')loadSentences().then(updateLevelUI).catch(()=>{}); };
+$('#search').oninput=()=>{ wordPage=1; renderWords(); }; $('#filter-group').onchange=()=>{ wordPage=1; renderWords(); };
 $('#group-form').onsubmit=e=>{ e.preventDefault(); const name=e.target.elements.name.value.trim(); if(!name)return; if(data.groups.some(g=>g.name.toLowerCase()===name.toLowerCase()))return alert('Tên nhóm đã tồn tại.'); data.groups.push({id:id(),name}); e.target.reset(); render(); save(); };
 $('#group-list').onclick=e=>{ const rename=e.target.dataset.rename, del=e.target.dataset.deleteGroup, g=data.groups.find(x=>x.id===(rename||del)); if(!g)return; if(rename){ const name=prompt('Tên nhóm:',g.name)?.trim(); if(!name)return; if(data.groups.some(x=>x.id!==g.id&&x.name.toLowerCase()===name.toLowerCase()))return alert('Tên nhóm đã tồn tại.'); g.name=name; } else { if(!confirm('Xóa nhóm này? Các từ vẫn được giữ lại.'))return; data.groups=data.groups.filter(x=>x.id!==del); data.words.forEach(w=>w.groups=w.groups.filter(x=>x!==del)); } render(); save(); };
 function openWord(w) { editing=w?.id||null; const f=$('#word-form'); f.reset(); f.elements.japanese.value=w?.japanese||''; f.elements.romaji.value=w?.romaji||''; f.elements.meaning.value=w?.meaning||''; $('#dialog-title').textContent=w?'Sửa từ':'Thêm từ mới'; $('#word-groups').innerHTML=data.groups.length?data.groups.map(g=>`<label><input type="checkbox" name="group" value="${esc(g.id)}" ${w?.groups.includes(g.id)?'checked':''}>${esc(g.name)}</label>`).join(''):'Chưa có nhóm. Bạn có thể tạo nhóm trước.'; $('#word-dialog').showModal(); }
@@ -296,37 +301,68 @@ function streak(days) { let d=today(), n=0; if (!days[d]) d--; while (days[d]) {
 function renderStats() {
   const s=store(), d=today(), entries=data.words.map(w=>({w,p:s.words[w.id]}));
   const seen=entries.filter(x=>x.p), total=seen.reduce((n,x)=>n+x.p.correct+x.p.wrong,0), right=seen.reduce((n,x)=>n+x.p.correct,0);
-  const tiles=[['Tổng số từ',data.words.length],['Chưa học',entries.length-seen.length],['Đang học',seen.filter(x=>x.p.box<3).length],['Đã thuộc',seen.filter(x=>x.p.box>=3).length],['Đến hạn ôn hôm nay',seen.filter(x=>x.p.due<=d).length],['Chuỗi ngày học',streak(s.days)],['Số lượt trả lời hôm nay',s.days[d]||0],['Tỉ lệ đúng',total?Math.round(right/total*100)+'%':'–']];
+  const lv=levelStats(), tiles=[...(lv.length?[['Câu mẫu đã thuộc',lv.reduce((n,x)=>n+x.known,0)+'/'+lv.reduce((n,x)=>n+x.total,0)]]:[]),['Tổng số từ',data.words.length],['Chưa học',entries.length-seen.length],['Đang học',seen.filter(x=>x.p.box<3).length],['Đã thuộc',seen.filter(x=>x.p.box>=3).length],['Đến hạn ôn hôm nay',seen.filter(x=>x.p.due<=d).length],['Chuỗi ngày học',streak(s.days)],['Số lượt trả lời hôm nay',s.days[d]||0],['Tỉ lệ đúng',total?Math.round(right/total*100)+'%':'–']];
   const weak=seen.filter(x=>x.p.wrong>0).sort((a,b)=>b.p.wrong-a.p.wrong).slice(0,10);
   $('#stats-note').textContent=sharedMode?'Tiến độ học chỉ lưu trên thiết bị này, không chia sẻ với người khác.':'Tiến độ học được lưu cùng dữ liệu trên Google Drive của bạn.';
   $('#stats-body').innerHTML=`<div class="stat-grid">${tiles.map(([k,v])=>`<div class="stat"><strong>${v}</strong><span>${k}</span></div>`).join('')}</div><h3>Từ hay sai</h3>`+(weak.length?weak.map(x=>`<div class="row"><div><strong>${esc(x.w.japanese)}</strong> <span>${esc(x.w.romaji)}</span><p>${esc(x.w.meaning)}</p></div><div>Sai ${x.p.wrong} · Đúng ${x.p.correct}</div></div>`).join(''):'<p>Chưa có từ nào bị sai.</p>');
 }
 function markActivity() { const s=store(), d=today(); s.days[d]=(s.days[d]||0)+1; persistProgress(); }
-let sentenceBank=null, sentenceSet=[], sIndex=0, sScore=0, sState=null;
+const levelNames={1:'Dễ',2:'Vừa',3:'Khó'}, decoyCount={1:1,2:2,3:3};
+const levelOf=x=>x.level||1;
+const dirNames={vj:'Việt → Nhật',jv:'Nhật → Việt',mix:'Xen kẽ cả hai'};
+function sentenceKnown(x, dir='mix') { const r=store().sentences?.[x.id]; return dir==='mix' ? r?.vj===true&&r?.jv===true : r?.[dir]===true; }
+function levelStats(dir='mix') { return [1,2,3].map(l=>{ const list=(sentenceBank||[]).filter(x=>levelOf(x)===l); return {level:l,total:list.length,known:list.filter(x=>sentenceKnown(x,dir)).length}; }).filter(x=>x.total); }
+function pickSentences(level, count, dir='vj') {
+  const list=(sentenceBank||[]).filter(x=>!level||levelOf(x)===level);
+  return shuffle(list).sort((a,b)=>sentenceKnown(a,dir)-sentenceKnown(b,dir)||levelOf(a)-levelOf(b)).slice(0,count);
+}
+function updateLevelUI() {
+  const sf=$('#sentence-form').elements, dir=sf?.dir?.value||'vj', stats=levelStats(dir); if (!stats.length) return;
+  const suggest=(stats.find(x=>x.known/x.total<0.8)||stats[stats.length-1]).level;
+  const fill=(select, label)=>{
+    if (!select) return;
+    const chosen=select.dataset?.touched ? select.value : String(suggest);
+    select.innerHTML=`<option value="0">Tất cả mức</option>`+stats.map(x=>`<option value="${x.level}">${levelNames[x.level]} (${label(x)})</option>`).join('');
+    select.value=chosen; select.onchange=()=>{ select.dataset.touched='1'; };
+  };
+  fill(sf?.level, x=>`${x.known}/${x.total} câu đã thuộc`);
+  fill($('#pron-form').elements?.level, x=>`${x.total} câu`);
+  if (sf?.dir) sf.dir.onchange=updateLevelUI;
+  $('#level-hint').textContent=`Gợi ý: nên luyện mức ${levelNames[suggest]} trước. Mức "Dễ" dùng câu ngắn, ít thẻ gây nhiễu; mức "Khó" có câu dài, phủ định và nhiều trợ từ.`;
+}
+let sentenceBank=null, sentenceSet=[], sentenceDirs=[], sIndex=0, sScore=0, sState=null;
 async function loadSentences() {
   if (sentenceBank) return sentenceBank;
   const response=await fetch('sentences.json');
   if (!response.ok) throw new Error('Không tải được danh sách câu mẫu.');
   const json=await response.json();
   if (!Array.isArray(json.sentences)||!json.sentences.length) throw new Error('Danh sách câu mẫu không hợp lệ.');
-  return sentenceBank=json.sentences;
+  if (!json.sentences.every(x=>Array.isArray(x.tokens)&&x.tokens.length&&Array.isArray(x.viTokens)&&x.viTokens.length)) throw new Error('Danh sách câu mẫu không hợp lệ.');
+  sentenceBank=json.sentences; updateLevelUI(); return sentenceBank;
 }
 $('#sentence-form').onsubmit=async e=>{
-  e.preventDefault(); const count=Number(e.target.elements.count.value);
-  try { const bank=await loadSentences(); sentenceSet=shuffle([...bank]).slice(0,count); sIndex=0; sScore=0; showSentence(); }
-  catch (err) { $('#sentence-play').innerHTML=`<p>${esc(err.message)}</p>`; }
+  e.preventDefault(); const f=e.target.elements, count=Number(f.count.value), dir=f.dir?.value||'vj';
+  try {
+    await loadSentences(); sentenceSet=pickSentences(Number(f.level?.value)||0,count,dir); sIndex=0; sScore=0;
+    sentenceDirs=sentenceSet.map(x=>{ if (dir!=='mix') return dir; const open=['vj','jv'].filter(d=>!sentenceKnown(x,d)), pool=open.length?open:['vj','jv']; return pool[Math.floor(Math.random()*pool.length)]; });
+    showSentence();
+  } catch (err) { $('#sentence-play').innerHTML=`<p>${esc(err.message)}</p>`; }
 };
+const sentenceTokens=(x,dir)=>dir==='jv'?x.viTokens:x.tokens;
+const sentenceText=(tokens,dir)=>dir==='jv'?tokens.join(' ').toLowerCase():tokens.join('');
 function showSentence() {
   if (sIndex>=sentenceSet.length) { $('#sentence-play').innerHTML=`<h3>Hoàn thành! 🎉</h3><p>Bạn ghép đúng ${sScore}/${sentenceSet.length} câu.</p><p>Chọn số câu và bắt đầu để luyện thêm.</p>`; return; }
-  const s=sentenceSet[sIndex], all=[...new Set(sentenceBank.flatMap(x=>x.tokens))];
-  const decoys=shuffle(all.filter(t=>!s.tokens.includes(t))).slice(0,2);
-  sState={s, chips:shuffle([...s.tokens,...decoys].map((t,i)=>({t,i}))), chosen:[], checked:false};
+  const s=sentenceSet[sIndex], dir=sentenceDirs[sIndex]||'vj', own=sentenceTokens(s,dir), ownKeys=new Set(own.map(t=>t.toLowerCase())), seen=new Set();
+  const pool=sentenceBank.flatMap(x=>sentenceTokens(x,dir)).filter(t=>{ const k=t.toLowerCase(); if (ownKeys.has(k)||seen.has(k)) return false; seen.add(k); return true; });
+  const decoys=shuffle(pool).slice(0,decoyCount[levelOf(s)]||2);
+  sState={s, dir, chips:shuffle([...own,...decoys].map((t,i)=>({t,i}))), chosen:[], checked:false};
   drawSentence();
 }
 function drawSentence() {
   const st=sState, text=i=>st.chips.find(c=>c.i===i).t, bank=st.chips.filter(c=>!st.chosen.includes(c.i));
   const chip=(i,zone)=>`<button type="button" class="chip" data-chip="${i}" data-zone="${zone}" ${st.checked?'disabled':''}>${esc(text(i))}</button>`;
-  $('#sentence-play').innerHTML=`<p>Câu ${sIndex+1}/${sentenceSet.length} · Dịch sang tiếng Nhật</p><h2>${esc(st.s.vi)}</h2><div class="sentence-answer" aria-label="Câu của bạn">${st.chosen.map(i=>chip(i,'answer')).join('')}</div><div class="sentence-bank">${bank.map(c=>chip(c.i,'bank')).join('')}</div><div id="sentence-result"></div><div class="actions"><button type="button" id="sentence-check" ${st.chosen.length&&!st.checked?'':'disabled'}>Kiểm tra</button></div>`;
+  const prompt=st.dir==='jv' ? `<h2>${esc(st.s.tokens.join(' '))}</h2><p>${esc(st.s.romaji)}</p><button type="button" class="secondary" data-say="1">🔊 Nghe</button> <button type="button" class="secondary" data-say="1" data-rate="0.6">🐢 Chậm</button>` : `<h2>${esc(st.s.vi)}</h2>`;
+  $('#sentence-play').innerHTML=`<p>Câu ${sIndex+1}/${sentenceSet.length} · Dịch sang tiếng ${st.dir==='jv'?'Việt':'Nhật'}</p>${prompt}<div class="sentence-answer" aria-label="Câu của bạn">${st.chosen.map(i=>chip(i,'answer')).join('')}</div><div class="sentence-bank">${bank.map(c=>chip(c.i,'bank')).join('')}</div><div id="sentence-result"></div><div class="actions"><button type="button" id="sentence-check" ${st.chosen.length&&!st.checked?'':'disabled'}>Kiểm tra</button></div>`;
 }
 $('#sentence-play').onclick=e=>{
   const st=sState, b=e.target.closest('button'); if (!st||!b) return;
@@ -337,9 +373,10 @@ $('#sentence-play').onclick=e=>{
     const i=Number(b.dataset.chip);
     st.chosen = b.dataset.zone==='bank' ? [...st.chosen,i] : st.chosen.filter(x=>x!==i); drawSentence();
   } else if (b.id==='sentence-check') {
-    st.checked=true; const answer=st.chosen.map(i=>st.chips.find(c=>c.i===i).t).join(''), ok=answer===st.s.tokens.join('');
-    if (ok) sScore++; markActivity(); drawSentence();
-    $('#sentence-result').innerHTML=`<p class="feedback ${ok?'correct':'incorrect'}">${ok?'Chính xác!':'Chưa đúng.'}</p><p><strong>${esc(st.s.tokens.join(' '))}</strong><br>${esc(st.s.romaji)}</p><button type="button" class="secondary" data-say="1">🔊 Nghe</button> <button type="button" class="secondary" data-say="1" data-rate="0.6">🐢 Chậm</button> <button type="button" id="sentence-next">${sIndex+1===sentenceSet.length?'Xem kết quả':'Câu tiếp theo'}</button>`;
+    st.checked=true; const answer=sentenceText(st.chosen.map(i=>st.chips.find(c=>c.i===i).t),st.dir), ok=answer===sentenceText(sentenceTokens(st.s,st.dir),st.dir);
+    if (ok) sScore++; const records=(store().sentences ||= {}); records[st.s.id]={...records[st.s.id],[st.dir]:ok}; markActivity(); drawSentence();
+    const shown=st.dir==='jv' ? `<strong>${esc(st.s.vi)}</strong>` : `<strong>${esc(st.s.tokens.join(' '))}</strong><br>${esc(st.s.romaji)}`;
+    $('#sentence-result').innerHTML=`<p class="feedback ${ok?'correct':'incorrect'}">${ok?'Chính xác!':'Chưa đúng.'}</p><p>${shown}</p>${st.dir==='jv'?'':'<button type="button" class="secondary" data-say="1">🔊 Nghe</button> <button type="button" class="secondary" data-say="1" data-rate="0.6">🐢 Chậm</button> '}<button type="button" id="sentence-next">${sIndex+1===sentenceSet.length?'Xem kết quả':'Câu tiếp theo'}</button>`;
   }
 };
 const speechNorm=t=>String(t).normalize('NFC').replace(/[\s、。，．,.?？!！「」]/g,'');
@@ -355,7 +392,13 @@ $('#pron-form').onsubmit=async e=>{
   e.preventDefault(); const f=e.target.elements, count=Number(f.count.value);
   try {
     let items;
-    if (f.source.value==='sentences') items=(await loadSentences()).map(x=>({text:x.tokens.join(''),targets:[x.tokens.join(''),x.ja].filter(Boolean),romaji:x.romaji,vi:x.vi}));
+    if (f.source.value==='tokens') {
+      const lv=Number(f.level?.value)||0, seen=new Set(); items=[];
+      for (const x of (await loadSentences()).filter(x=>!lv||levelOf(x)===lv)) x.tokens.forEach((t,k)=>{
+        if ([...t].length<2||seen.has(t)) return; seen.add(t);
+        items.push({text:t,targets:[...new Set([t,x.tokenJa?.[k]].filter(Boolean))],romaji:x.tokenRomaji?.[k]||'',vi:''});
+      });
+    } else if (f.source.value==='sentences') { const lv=Number(f.level?.value)||0; items=(await loadSentences()).filter(x=>!lv||levelOf(x)===lv).map(x=>({text:x.tokens.join(''),targets:[x.tokens.join(''),x.ja].filter(Boolean),romaji:x.romaji,vi:x.vi})); }
     else items=data.words.filter(w=>w.japanese).map(w=>({text:w.japanese,targets:[w.japanese],romaji:w.romaji,vi:w.meaning}));
     if (!items.length) { $('#pron-play').innerHTML='<p>Chưa có nội dung để luyện. Hãy thêm từ vựng trước.</p>'; return; }
     pron={items:shuffle(items).slice(0,count),i:0,ok:0,busy:false}; showPron();

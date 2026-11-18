@@ -34,6 +34,7 @@ jobs:
           node merge.test.cjs
           node srs.test.cjs
           node speech.test.cjs
+          node pager.test.cjs
       - name: Prepare site
         env:
           GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
