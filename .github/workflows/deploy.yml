@@ -27,9 +27,13 @@ jobs:
           node --check app.js
           node --check config.js
       - name: Prepare site
+        env:
+          GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
         run: |
           mkdir public
-          cp index.html app.js config.js style.css public/
+          cp index.html app.js style.css public/
+          node -e "require('fs').writeFileSync('public/config.js', 'export const CLIENT_ID = ' + JSON.stringify(process.env.GOOGLE_CLIENT_ID || '') + ';\n')"
+          if [ -z "$GOOGLE_CLIENT_ID" ]; then echo "::warning::Set the GOOGLE_CLIENT_ID repository variable to enable Google login."; fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
@@ -37,3 +41,4 @@ jobs:
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
+
