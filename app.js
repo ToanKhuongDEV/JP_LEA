@@ -121,15 +121,15 @@ async function restoreSession() {
     return;
   }
   token = saved.token;
-  status('?ang t?i d? li?u?');
+  status('Đang tải dữ liệu…');
   try {
     await load();
     render();
     $('#content').hidden = false;
     $('#backup').hidden = false;
     $('#restore').hidden = false;
-    $('#login').textContent = '??i t?i kho?n';
-    status('?? k?t n?i Google Drive');
+    $('#login').textContent = 'Đổi tài khoản';
+    status('Đã kết nối Google Drive');
   } catch (e) {
     token = '';
     status(e.message);
