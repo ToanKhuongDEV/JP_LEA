@@ -1,0 +1,17 @@
+<!doctype html>
+<html><head><base target="_top"></head><body>
+<script>
+const channel = <?!= JSON.stringify(channel) ?>;
+window.addEventListener('message', event => {
+  const request = event.data;
+  if (event.source !== window.top || !request || request.channel !== channel ||
+      !['getSharedData', 'saveSharedData'].includes(request.method) || !Array.isArray(request.args)) return;
+  const reply = result => window.top.postMessage({channel, type:'result', id:request.id, ...result}, event.origin);
+  google.script.run
+    .withSuccessHandler(value => reply({value}))
+    .withFailureHandler(error => reply({error:error.message || 'Không thể kết nối dữ liệu chung.'}))
+    [request.method](...request.args);
+});
+window.top.postMessage({channel, type:'ready'}, '*');
+</script>
+</body></html>

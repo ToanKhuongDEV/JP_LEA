@@ -1,5 +1,11 @@
-import { CLIENT_ID } from './config.js';
+import { CLIENT_ID, TOGETHER_URL } from './config.js';
 const $ = s => document.querySelector(s);
+const sharedMode = typeof location !== 'undefined' && new URLSearchParams(location.search).get('mode') === 'together';
+if (typeof TOGETHER_URL !== 'undefined' && TOGETHER_URL) {
+  $('#together-link').href = sharedMode ? location.pathname : '?mode=together';
+  $('#together-link').textContent = sharedMode ? '← Khu vực cá nhân' : 'Learning Together →';
+  $('#together-link').hidden = false;
+}
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const id = () => crypto.randomUUID();
 const empty = () => ({version:1, words:[], groups:[]});
@@ -13,7 +19,38 @@ $('#remember').onchange = () => {
   localStorage.setItem(rememberKey, String($('#remember').checked));
   if (!$('#remember').checked) localStorage.removeItem(sessionKey);
 };
-if (!CLIENT_ID) $('#setup').hidden = false;
+if (!CLIENT_ID && !sharedMode) $('#setup').hidden = false;
+let sharedCall;
+if (sharedMode && typeof TOGETHER_URL !== 'undefined' && TOGETHER_URL) {
+  const channel = crypto.randomUUID(), pending = new Map();
+  let bridge, bridgeOrigin, sequence = 0;
+  const ready = new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('Không kết nối được Learning Together. Hãy thử tải lại trang.')), 30000);
+    window.addEventListener('message', event => {
+      const message = event.data;
+      if (!message || message.channel !== channel || !/^https:\/\/[a-z0-9-]+\.googleusercontent\.com$/i.test(event.origin)) return;
+      if (message.type === 'ready' && !bridge) {
+        bridge = event.source; bridgeOrigin = event.origin; clearTimeout(timer); resolve();
+      } else if (event.source === bridge && event.origin === bridgeOrigin && message.type === 'result' && pending.has(message.id)) {
+        const call = pending.get(message.id); pending.delete(message.id); clearTimeout(call.timer);
+        if (message.error) call.reject(new Error(message.error)); else call.resolve(message.value);
+      }
+    });
+    const frame = document.createElement('iframe');
+    frame.hidden = true;
+    frame.src = TOGETHER_URL + '?bridge=1&channel=' + encodeURIComponent(channel);
+    document.body.appendChild(frame);
+  });
+  sharedCall = async (method, ...args) => {
+    await ready;
+    return new Promise((resolve, reject) => {
+      const requestId = ++sequence;
+      const timer = setTimeout(() => { pending.delete(requestId); reject(new Error('Yêu cầu hết thời gian chờ. Hãy thử lại.')); }, 30000);
+      pending.set(requestId, {resolve, reject, timer});
+      bridge.postMessage({channel, id:requestId, method, args}, bridgeOrigin);
+    });
+  };
+}
 async function api(url, options = {}) {
   const response = await fetch(url, {...options, headers:{Authorization:`Bearer ${token}`, ...options.headers}});
   if (response.status === 401) localStorage.removeItem(sessionKey);
@@ -21,6 +58,11 @@ async function api(url, options = {}) {
   return response.status === 204 ? null : response.json();
 }
 async function load() {
+  if (sharedMode) {
+    if (!sharedCall) throw new Error('Learning Together chưa được cấu hình.');
+    const shared = await sharedCall('getSharedData');
+    data = shared.data; remoteRevision = shared.revision; return;
+  }
   const found = await api('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q='+encodeURIComponent("name = 'japanese-study.json' and trashed = false")+'&fields=files(id,version)&pageSize=100');
   if (found.files.length > 1) throw new Error('Có nhiều bản dữ liệu trên Drive. Không thể tự chọn bản an toàn.');
   if (found.files.length) {
@@ -36,9 +78,11 @@ async function save() {
   busy = true;
   try {
     while (dirty) {
-      dirty = false; status('Đang lưu lên Drive…');
+      dirty = false; status(sharedMode ? 'Đang lưu dữ liệu chung…' : 'Đang lưu lên Drive…');
       const snapshot = JSON.stringify(data);
-      if (fileId) {
+      if (sharedMode) {
+        remoteRevision = await sharedCall('saveSharedData', remoteRevision, JSON.parse(snapshot));
+      } else if (fileId) {
         const meta = await api(`https://www.googleapis.com/drive/v3/files/${fileId}?fields=version`);
         if (meta.version !== remoteRevision) throw new Error('Dữ liệu trên Drive đã thay đổi ở thiết bị khác. Hãy tải lại trang trước khi sửa tiếp.');
         const saved = await api(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media&fields=id,version`, {method:'PATCH',headers:{'Content-Type':'application/json'},body:snapshot});
@@ -50,7 +94,7 @@ async function save() {
         fileId=saved.id; remoteRevision=saved.version;
       }
     }
-    status('Đã lưu trên Google Drive');
+    status(sharedMode ? 'Đã lưu dữ liệu chung' : 'Đã lưu trên Google Drive');
   } catch(e) { dirty=true; status(`Chưa lưu: ${e.message}`); }
   finally { busy=false; $('#retry').hidden=!dirty; }
 }
@@ -81,6 +125,28 @@ $('#restore-file').onchange=async e=>{
     if(incoming.version!==1 || !Array.isArray(incoming.words) || !Array.isArray(incoming.groups) || !incoming.groups.every(g=>typeof g.id==='string'&&typeof g.name==='string') || !incoming.words.every(w=>typeof w.id==='string'&&typeof w.japanese==='string'&&typeof w.romaji==='string'&&typeof w.meaning==='string'&&Array.isArray(w.groups)&&w.groups.every(g=>typeof g==='string'))) throw new Error('File không đúng định dạng.');
     if(!confirm('Nhập bản sao sẽ thay thế danh sách hiện tại trên Drive. Tiếp tục?'))return;
     data=incoming; render(); save();
+  } catch(err) { alert(`Không thể nhập: ${err.message}`); }
+  finally { e.target.value=''; }
+};
+$('#import-words').onclick=()=>$('#import-words-file').click();
+$('#import-words-file').onchange=async e=>{
+  const file=e.target.files[0]; if(!file)return;
+  try {
+    const incoming=JSON.parse(await file.text());
+    if(!incoming || incoming.version!==1 || !Array.isArray(incoming.words) || !Array.isArray(incoming.groups) || !incoming.groups.every(g=>g && typeof g.id==='string' && g.id && typeof g.name==='string' && g.name.trim()) || new Set(incoming.groups.map(g=>g.id)).size!==incoming.groups.length || !incoming.words.every(w=>w && typeof w.id==='string' && w.id && typeof w.japanese==='string' && w.japanese.trim() && typeof w.romaji==='string' && w.romaji.trim() && typeof w.meaning==='string' && Array.isArray(w.groups) && w.groups.every(g=>typeof g==='string' && incoming.groups.some(x=>x.id===g)))) throw new Error('File kh\u00f4ng \u0111\u00fang \u0111\u1ecbnh d\u1ea1ng.');
+    const groups=[...data.groups], words=[...data.words], groupIds=new Map();
+    for(const g of incoming.groups) {
+      let existing=groups.find(x=>x.id===g.id && x.name.toLowerCase()===g.name.toLowerCase()) || groups.find(x=>x.name.toLowerCase()===g.name.toLowerCase());
+      if(!existing) { existing={...g, id:groups.some(x=>x.id===g.id)?id():g.id}; groups.push(existing); }
+      groupIds.set(g.id, existing.id);
+    }
+    let added=0;
+    for(const w of incoming.words) {
+      if(words.some(x=>x.id===w.id)) continue;
+      words.push({...w, groups:[...new Set(w.groups.map(g=>groupIds.get(g)))]}); added++;
+    }
+    data={...data,groups,words}; render(); save();
+    alert(`Đã thêm ${added} từ; bỏ qua ${incoming.words.length-added} từ có ID trùng.`);
   } catch(err) { alert(`Không thể nhập: ${err.message}`); }
   finally { e.target.value=''; }
 };
@@ -135,4 +201,13 @@ async function restoreSession() {
     status(e.message);
   }
 }
-restoreSession();
+if (sharedMode) {
+  $('#login').hidden = true;
+  $('#remember-label').hidden = true;
+  $('#storage-note').textContent = 'Dữ liệu chung được lưu trong Google Sheets.';
+  status('Đang tải dữ liệu chung…');
+  load().then(() => {
+    render(); $('#content').hidden = false; $('#backup').hidden = false;
+    status('Đã kết nối Learning Together');
+  }).catch(e => status('Không thể tải dữ liệu chung: ' + e.message));
+} else restoreSession();

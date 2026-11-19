@@ -1,0 +1,425 @@
+{
+  "version": 1,
+  "words": [
+    {
+      "id": "hiragana-3042",
+      "japanese": "あ",
+      "romaji": "a",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-3044",
+      "japanese": "い",
+      "romaji": "i",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-3046",
+      "japanese": "う",
+      "romaji": "u",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-3048",
+      "japanese": "え",
+      "romaji": "e",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-304a",
+      "japanese": "お",
+      "romaji": "o",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-304b",
+      "japanese": "か",
+      "romaji": "ka",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-304d",
+      "japanese": "き",
+      "romaji": "ki",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-304f",
+      "japanese": "く",
+      "romaji": "ku",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-3051",
+      "japanese": "け",
+      "romaji": "ke",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-3053",
+      "japanese": "こ",
+      "romaji": "ko",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-3055",
+      "japanese": "さ",
+      "romaji": "sa",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-3057",
+      "japanese": "し",
+      "romaji": "shi",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-3059",
+      "japanese": "す",
+      "romaji": "su",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-305b",
+      "japanese": "せ",
+      "romaji": "se",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-305d",
+      "japanese": "そ",
+      "romaji": "so",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-305f",
+      "japanese": "た",
+      "romaji": "ta",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-3061",
+      "japanese": "ち",
+      "romaji": "chi",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-3064",
+      "japanese": "つ",
+      "romaji": "tsu",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-3066",
+      "japanese": "て",
+      "romaji": "te",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-3068",
+      "japanese": "と",
+      "romaji": "to",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-306a",
+      "japanese": "な",
+      "romaji": "na",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-306b",
+      "japanese": "に",
+      "romaji": "ni",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-306c",
+      "japanese": "ぬ",
+      "romaji": "nu",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-306d",
+      "japanese": "ね",
+      "romaji": "ne",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-306e",
+      "japanese": "の",
+      "romaji": "no",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-306f",
+      "japanese": "は",
+      "romaji": "ha",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-3072",
+      "japanese": "ひ",
+      "romaji": "hi",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-3075",
+      "japanese": "ふ",
+      "romaji": "fu",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-3078",
+      "japanese": "へ",
+      "romaji": "he",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-307b",
+      "japanese": "ほ",
+      "romaji": "ho",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-307e",
+      "japanese": "ま",
+      "romaji": "ma",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-307f",
+      "japanese": "み",
+      "romaji": "mi",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-3080",
+      "japanese": "む",
+      "romaji": "mu",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-3081",
+      "japanese": "め",
+      "romaji": "me",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-3082",
+      "japanese": "も",
+      "romaji": "mo",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-3084",
+      "japanese": "や",
+      "romaji": "ya",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-3086",
+      "japanese": "ゆ",
+      "romaji": "yu",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-3088",
+      "japanese": "よ",
+      "romaji": "yo",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-3089",
+      "japanese": "ら",
+      "romaji": "ra",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-308a",
+      "japanese": "り",
+      "romaji": "ri",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-308b",
+      "japanese": "る",
+      "romaji": "ru",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-308c",
+      "japanese": "れ",
+      "romaji": "re",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-308d",
+      "japanese": "ろ",
+      "romaji": "ro",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-308f",
+      "japanese": "わ",
+      "romaji": "wa",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-3092",
+      "japanese": "を",
+      "romaji": "wo",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    },
+    {
+      "id": "hiragana-3093",
+      "japanese": "ん",
+      "romaji": "n",
+      "meaning": "",
+      "groups": [
+        "hiragana-basic"
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "id": "hiragana-basic",
+      "name": "Hiragana"
+    }
+  ]
+}

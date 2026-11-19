@@ -1,0 +1,131 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Nhật ký từ vựng</title><style>:root{font-family:system-ui,sans-serif;color:#183043;background:#f3f7f7;font-size:16px}*{box-sizing:border-box}body{margin:0}main{max-width:1000px;margin:auto;padding:40px 22px}header{display:flex;justify-content:space-between;gap:24px;align-items:center;padding:18px 0 36px}small{font-weight:700;letter-spacing:.16em;color:#e0715a}h1{font-size:clamp(2rem,5vw,3.3rem);letter-spacing:-.05em;margin:.3em 0}h2{margin:0 0 8px;letter-spacing:-.03em}p{color:#627789;margin:8px 0 18px}button,input,select{font:inherit}button{background:#216b69;color:white;border:0;border-radius:10px;padding:12px 18px;cursor:pointer;font-weight:650}button:hover{background:#185654}button:disabled{opacity:.5;cursor:not-allowed}input,select{border:1px solid #d5e1e1;border-radius:9px;padding:12px;background:white;color:#183043;min-width:0}nav{display:flex;gap:8px;border-bottom:1px solid #d7e4e3}nav button{background:none;color:#637b85;border-radius:0}nav button.active{color:#216b69;border-bottom:3px solid #216b69}nav button:hover{background:#e5efee}.panel{background:white;border:1px solid #e1ebea;border-radius:18px;padding:28px;margin-top:22px;box-shadow:0 8px 30px #18304308}.heading,.row,.filters,.actions{display:flex;gap:12px;align-items:center;justify-content:space-between}.filters input{flex:1}.row{border-bottom:1px solid #edf1f0;padding:16px 0}.row:last-child{border:0}.row strong{font-size:1.3rem}.row p{margin:4px 0}.row-actions{display:flex;gap:6px}.secondary,.row-actions button{background:#eef5f4;color:#285957}.secondary:hover,.row-actions button:hover{background:#d9ebe7}.row-actions button{padding:8px}.tags{font-size:.85rem;color:#557b78}label{display:block;margin:16px 0;font-weight:650}label input,label select{display:block;width:100%;margin-top:7px}label span{font-weight:400;color:#73858b}fieldset{border:1px solid #d5e1e1;border-radius:9px}fieldset label{display:inline-flex;align-items:center;gap:6px;margin:8px}fieldset input{width:auto;margin:0}dialog{width:min(500px,calc(100% - 30px));border:0;border-radius:18px;padding:28px;box-shadow:0 20px 80px #0003}dialog::backdrop{background:#142c38a0}#quiz-form{max-width:400px}#quiz-play{margin-top:24px}.choice{display:block;width:100%;text-align:left;margin:8px 0;background:#eef5f4;color:#183043}.choice:hover{background:#d9ebe7}.feedback{font-weight:700;color:#216b69}footer{color:#839493;text-align:center;font-size:.85rem;margin-top:32px}@media(max-width:600px){main{padding:20px 16px}header,.heading{align-items:flex-start;flex-direction:column}.panel{padding:20px}.filters{align-items:stretch;flex-direction:column}.filters input,.filters select{width:100%}.row{align-items:flex-start}.row-actions{flex-wrap:wrap;justify-content:flex-end}}
+
+#remember-label{display:flex;align-items:center;gap:8px;font-weight:400;margin:0 0 12px}#remember-label input{width:auto;margin:0}
+
+/* Header and practice layout */
+header{align-items:stretch;gap:32px;padding:16px 0 30px}.brand{display:flex;align-items:center;gap:18px;min-width:0}.brand-mark{display:grid;place-items:center;width:64px;height:64px;flex:none;border-radius:20px;background:#216b69;color:#fff;font-size:2.1rem;font-weight:700}.brand small{font-size:.75rem}.brand h1{font-size:clamp(1.9rem,4vw,2.75rem);margin:.2em 0}.brand p{margin:0}.account-card{min-width:260px;max-width:380px;background:#fff;border:1px solid #dce8e6;border-radius:16px;padding:16px;box-shadow:0 8px 24px #18304308}.account-main{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px 12px}.account-main #remember-label{grid-column:1/-1;font-size:.88rem;margin:0}.account-main #login{grid-column:2;grid-row:2;white-space:nowrap}.account-main #status{grid-column:1;grid-row:2;margin:0;font-size:.88rem;overflow-wrap:anywhere}.account-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.account-actions:has(> :not([hidden])){padding-top:10px;border-top:1px solid #edf1f0}.account-actions button{font-size:.85rem;padding:8px 10px}.quiz-intro{padding-bottom:20px;border-bottom:1px solid #e8f0ef}.quiz-intro p{margin-bottom:0}.quiz-layout{display:grid;grid-template-columns:minmax(230px,320px) minmax(0,1fr);gap:28px;align-items:start;margin-top:24px}#quiz-form{max-width:none;padding:20px;background:#f3f8f7;border:1px solid #e0edeb;border-radius:14px}#quiz-form label:first-child{margin-top:0}#quiz-form button{width:100%}#quiz-play{margin:0;padding:24px;border:1px solid #e0edeb;border-radius:14px;min-height:220px}#quiz-play:empty{display:grid;place-items:center;background:#fafdfc}#quiz-play:empty::before{content:"\3042";font-size:2.5rem;opacity:.6}#quiz-play h2{margin:12px 0 18px;font-size:2.2rem}#quiz-play .choice{padding:14px 16px;border:1px solid transparent}#quiz-play .choice:hover{border-color:#9ec7c1}#answer{margin-top:18px}#answer button{min-width:150px}@media(max-width:700px){header{flex-direction:column;gap:20px}.account-card{max-width:none;width:100%}.quiz-layout{grid-template-columns:1fr;gap:16px}.quiz-panel{padding:20px}#quiz-play:empty{display:none}}@media(max-width:380px){.account-main{grid-template-columns:1fr}.account-main #login,.account-main #status{grid-column:1;grid-row:auto}.account-main #login{width:100%}}
+
+#quiz-play .choice.correct{background:#dcfce7;border-color:#4ade80;color:#14532d;opacity:1}#quiz-play .choice.incorrect{background:#fee2e2;border-color:#f87171;color:#991b1b;opacity:1}.feedback.incorrect{color:#b91c1c}.feedback.correct{color:#166534}
+</style></head><body><main><header><div class="brand"><div class="brand-mark" aria-hidden="true">&#12354;</div><div><small>日本語 · MỖI NGÀY MỘT CHÚT</small><h1>Nhật ký từ vựng</h1><p>Ghi nhớ từ mới theo cách của bạn.</p></div></div><div class="account-card"><div class="account-main"><style>#remember-label,#login,#restore,#together-link {display:none}</style><label id="remember-label"><input id="remember" type="checkbox" checked> Ghi nh&#7899; &#273;&#259;ng nh&#7853;p tr&#234;n thi&#7871;t b&#7883; n&#224;y</label><button id="login">Đăng nhập Google</button><p id="status" role="status">Chưa đăng nhập</p></div><div class="account-actions"><button id="backup" class="secondary" hidden>Tải bản sao dữ liệu</button><button id="restore" class="secondary" hidden>Nhập bản sao</button><input id="restore-file" type="file" accept="application/json,.json" hidden><button id="retry" class="secondary" hidden>Thử lưu lại</button></div></div><a id="together-link" href="#" hidden>Learning Together &#8594;</a></header><section id="setup" hidden><p>Ứng dụng chưa được cấu hình Google Client ID. Xem hướng dẫn trong README.</p></section><div id="content" hidden><nav><button data-tab="words" class="active">Từ vựng</button><button data-tab="groups">Nhóm</button><button data-tab="quiz">Luyện tập</button></nav><section id="words" class="panel"><div class="heading"><div><h2>Danh sách từ vựng</h2><p>Những điều nhỏ bé bạn đang học.</p></div><button id="import-words" class="secondary" type="button">Nh&#7853;p th&#234;m t&#7915; JSON</button> <input id="import-words-file" type="file" accept="application/json,.json" hidden><button id="add-word">+ Thêm từ</button></div><div class="filters"><input autocomplete="off" id="search" placeholder="Tìm tiếng Nhật, romaji, nghĩa..." aria-label="Tìm từ"><select id="filter-group" aria-label="Lọc theo nhóm"></select></div><div id="word-list"></div></section><section id="groups" class="panel" hidden><h2>Nhóm từ</h2><p>Sắp xếp từ vựng theo chủ đề yêu thích.</p><form autocomplete="off" id="group-form" class="filters"><input name="name" required maxlength="80" placeholder="Tên nhóm mới" aria-label="Tên nhóm mới"><button>+ Tạo nhóm</button></form><div id="group-list"></div></section><section id="quiz" class="panel quiz-panel" hidden><div class="quiz-intro"><h2>Luyện tập</h2><p>Chọn nội dung và bắt đầu nhé.</p></div><div class="quiz-layout"><form id="quiz-form"><label>Nhóm<select name="group" id="quiz-group"></select></label><label>Kiểu câu hỏi<select name="mode"><option value="mixed">Ngẫu nhiên tất cả các chiều</option><option value="rj">Romaji → Tiếng Nhật</option><option value="jr">Tiếng Nhật → Romaji</option><option value="jv">Tiếng Nhật → Tiếng Việt</option><option value="vj">Tiếng Việt → Tiếng Nhật</option></select></label><label>Số câu<input name="count" type="number" min="1" max="100" value="10" required></label><button>Bắt đầu luyện tập</button></form><div id="quiz-play" aria-live="polite"></div></div></section></div><footer><span id="storage-note">Dữ liệu được lưu trong Google Drive của bạn.</span> ? <a href="privacy.html">Ch&#237;nh s&#225;ch quy&#7873;n ri&#234;ng t&#432;</a> | <a href="terms.html">&#272;i&#7873;u kho&#7843;n s&#7917; d&#7909;ng</a></footer></main><dialog id="word-dialog"><form autocomplete="off" id="word-form"><h2 id="dialog-title">Thêm từ mới</h2><label>Tiếng Nhật<input name="japanese" required maxlength="120" placeholder="ねこ"></label><label>Romaji<input name="romaji" required maxlength="120" placeholder="neko"></label><label>Nghĩa tiếng Việt <span>(không bắt buộc)</span><input name="meaning" maxlength="160" placeholder="con mèo"></label><fieldset><legend>Nhóm</legend><div id="word-groups"></div></fieldset><div class="actions"><button type="button" class="secondary" id="cancel">Hủy</button><button>Lưu từ</button></div></form></dialog><script>const CLIENT_ID = 'shared';
+const $ = s => document.querySelector(s);
+const sharedMode = typeof location !== 'undefined' && new URLSearchParams(location.search).get('mode') === 'together';
+if (typeof TOGETHER_URL !== 'undefined' && TOGETHER_URL) {
+  $('#together-link').href = sharedMode ? location.pathname : '?mode=together';
+  $('#together-link').textContent = sharedMode ? '← Khu vực cá nhân' : 'Learning Together →';
+  $('#together-link').hidden = false;
+}
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const id = () => crypto.randomUUID();
+const empty = () => ({version:1, words:[], groups:[]});
+let data = empty(), token = '', fileId = '', remoteRevision = '', dirty = false, busy = false, editing = null, questions = [], current = 0, score = 0;
+const status = text => $('#status').textContent = text;
+const scope = 'https://www.googleapis.com/auth/drive.appdata';
+const rememberKey = 'jp-lea-remember';
+const sessionKey = 'jp-lea-session';
+$('#remember').checked = localStorage.getItem(rememberKey) !== 'false';
+$('#remember').onchange = () => {
+  localStorage.setItem(rememberKey, String($('#remember').checked));
+  if (!$('#remember').checked) localStorage.removeItem(sessionKey);
+};
+if (!CLIENT_ID && !sharedMode) $('#setup').hidden = false;
+async function api(url, options = {}) {
+  const response = await fetch(url, {...options, headers:{Authorization:`Bearer ${token}`, ...options.headers}});
+  if (response.status === 401) localStorage.removeItem(sessionKey);
+  if (!response.ok) throw new Error(response.status === 401 ? 'Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.' : `Google Drive báo lỗi ${response.status}.`);
+  return response.status === 204 ? null : response.json();
+}
+
+const sharedCall = (method, ...args) => new Promise((resolve, reject) =>
+  google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[method](...args));
+async function load() {
+  const shared = await sharedCall('getSharedData');
+  data = shared.data;
+  remoteRevision = shared.revision;
+}
+async function save() {
+  dirty = true; status('Chưa đồng bộ');
+  if (busy) return;
+  busy = true;
+  try {
+    while (dirty) {
+      dirty = false; status('Đang lưu dữ liệu chung…');
+      const snapshot = JSON.parse(JSON.stringify(data));
+      remoteRevision = await sharedCall('saveSharedData', remoteRevision, snapshot);
+    }
+    status('Đã lưu dữ liệu chung');
+  } catch (e) { dirty = true; status('Chưa lưu: ' + e.message); }
+  finally { busy = false; $('#retry').hidden = !dirty; }
+}
+window.addEventListener('beforeunload', e => { if (dirty || busy) { e.preventDefault(); e.returnValue=''; } });
+$('#retry').onclick=save;
+$('#backup').onclick=()=>{ const a=document.createElement('a'); const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.href=url; a.download='japanese-study-backup.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000); };
+$('#restore').onclick=()=>$('#restore-file').click();
+$('#restore-file').onchange=async e=>{
+  const file=e.target.files[0]; if(!file)return;
+  try {
+    const incoming=JSON.parse(await file.text());
+    if(incoming.version!==1 || !Array.isArray(incoming.words) || !Array.isArray(incoming.groups) || !incoming.groups.every(g=>typeof g.id==='string'&&typeof g.name==='string') || !incoming.words.every(w=>typeof w.id==='string'&&typeof w.japanese==='string'&&typeof w.romaji==='string'&&typeof w.meaning==='string'&&Array.isArray(w.groups)&&w.groups.every(g=>typeof g==='string'))) throw new Error('File không đúng định dạng.');
+    if(!confirm('Nhập bản sao sẽ thay thế danh sách hiện tại trên Drive. Tiếp tục?'))return;
+    data=incoming; render(); save();
+  } catch(err) { alert(`Không thể nhập: ${err.message}`); }
+  finally { e.target.value=''; }
+};
+$('#import-words').onclick=()=>$('#import-words-file').click();
+$('#import-words-file').onchange=async e=>{
+  const file=e.target.files[0]; if(!file)return;
+  try {
+    const incoming=JSON.parse(await file.text());
+    if(!incoming || incoming.version!==1 || !Array.isArray(incoming.words) || !Array.isArray(incoming.groups) || !incoming.groups.every(g=>g && typeof g.id==='string' && g.id && typeof g.name==='string' && g.name.trim()) || new Set(incoming.groups.map(g=>g.id)).size!==incoming.groups.length || !incoming.words.every(w=>w && typeof w.id==='string' && w.id && typeof w.japanese==='string' && w.japanese.trim() && typeof w.romaji==='string' && w.romaji.trim() && typeof w.meaning==='string' && Array.isArray(w.groups) && w.groups.every(g=>typeof g==='string' && incoming.groups.some(x=>x.id===g)))) throw new Error('File kh\u00f4ng \u0111\u00fang \u0111\u1ecbnh d\u1ea1ng.');
+    const groups=[...data.groups], words=[...data.words], groupIds=new Map();
+    for(const g of incoming.groups) {
+      let existing=groups.find(x=>x.id===g.id && x.name.toLowerCase()===g.name.toLowerCase()) || groups.find(x=>x.name.toLowerCase()===g.name.toLowerCase());
+      if(!existing) { existing={...g, id:groups.some(x=>x.id===g.id)?id():g.id}; groups.push(existing); }
+      groupIds.set(g.id, existing.id);
+    }
+    let added=0;
+    for(const w of incoming.words) {
+      if(words.some(x=>x.id===w.id)) continue;
+      words.push({...w, groups:[...new Set(w.groups.map(g=>groupIds.get(g)))]}); added++;
+    }
+    data={...data,groups,words}; render(); save();
+    alert(`Đã thêm ${added} từ; bỏ qua ${incoming.words.length-added} từ có ID trùng.`);
+  } catch(err) { alert(`Không thể nhập: ${err.message}`); }
+  finally { e.target.value=''; }
+};
+function options(selected='') { return '<option value="">Tất cả nhóm</option>'+data.groups.map(g=>`<option value="${esc(g.id)}" ${g.id===selected?'selected':''}>${esc(g.name)}</option>`).join(''); }
+function render() {
+  const filter=$('#filter-group').value, quiz=$('#quiz-group').value;
+  $('#filter-group').innerHTML=options(filter); $('#quiz-group').innerHTML=options(quiz);
+  renderWords();
+  $('#group-list').innerHTML=data.groups.length ? data.groups.map(g=>`<div class="row"><div><strong>${esc(g.name)}</strong><p>${data.words.filter(w=>w.groups.includes(g.id)).length} từ</p></div><div class="row-actions"><button data-rename="${esc(g.id)}">Đổi tên</button><button data-delete-group="${esc(g.id)}">Xóa</button></div></div>`).join('') : '<p>Chưa có nhóm nào. Tạo một nhóm để bắt đầu.</p>';
+}
+function renderWords() {
+  const q=$('#search').value.trim().toLowerCase(), group=$('#filter-group').value;
+  const words=data.words.filter(w=>(!group||w.groups.includes(group))&&[w.japanese,w.romaji,w.meaning].some(x=>x.toLowerCase().includes(q)));
+  $('#word-list').innerHTML=words.length ? words.map(w=>`<div class="row"><div><strong>${esc(w.japanese)}</strong> <span>${esc(w.romaji)}</span><p>${esc(w.meaning || 'Chưa có nghĩa tiếng Việt')}</p><div class="tags">${w.groups.map(g=>esc(data.groups.find(x=>x.id===g)?.name||'')).filter(Boolean).join(' · ')}</div></div><div class="row-actions"><button data-speak="${esc(w.id)}" aria-label="Phát âm ${esc(w.japanese)}">🔊</button><button data-edit="${esc(w.id)}">Sửa</button><button data-delete="${esc(w.id)}">Xóa</button></div></div>`).join('') : '<p>Chưa có từ phù hợp. Hãy thêm từ mới nhé.</p>';
+}
+function speak(text) { if (!('speechSynthesis' in window)) return alert('Trình duyệt không hỗ trợ phát âm.'); const voices=speechSynthesis.getVoices(); const voice=voices.find(v=>v.lang.toLowerCase().startsWith('ja')); if (!voice) return alert('Thiết bị chưa có giọng đọc tiếng Nhật.'); const u=new SpeechSynthesisUtterance(text); u.lang='ja-JP'; u.voice=voice; speechSynthesis.cancel(); speechSynthesis.speak(u); }
+document.querySelector('nav').onclick=e=>{ const b=e.target.closest('[data-tab]'); if(!b)return; document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b)); document.querySelectorAll('.panel').forEach(x=>x.hidden=x.id!==b.dataset.tab); };
+$('#search').oninput=renderWords; $('#filter-group').onchange=renderWords;
+$('#group-form').onsubmit=e=>{ e.preventDefault(); const name=e.target.elements.name.value.trim(); if(!name)return; if(data.groups.some(g=>g.name.toLowerCase()===name.toLowerCase()))return alert('Tên nhóm đã tồn tại.'); data.groups.push({id:id(),name}); e.target.reset(); render(); save(); };
+$('#group-list').onclick=e=>{ const rename=e.target.dataset.rename, del=e.target.dataset.deleteGroup, g=data.groups.find(x=>x.id===(rename||del)); if(!g)return; if(rename){ const name=prompt('Tên nhóm:',g.name)?.trim(); if(!name)return; if(data.groups.some(x=>x.id!==g.id&&x.name.toLowerCase()===name.toLowerCase()))return alert('Tên nhóm đã tồn tại.'); g.name=name; } else { if(!confirm('Xóa nhóm này? Các từ vẫn được giữ lại.'))return; data.groups=data.groups.filter(x=>x.id!==del); data.words.forEach(w=>w.groups=w.groups.filter(x=>x!==del)); } render(); save(); };
+function openWord(w) { editing=w?.id||null; const f=$('#word-form'); f.reset(); f.elements.japanese.value=w?.japanese||''; f.elements.romaji.value=w?.romaji||''; f.elements.meaning.value=w?.meaning||''; $('#dialog-title').textContent=w?'Sửa từ':'Thêm từ mới'; $('#word-groups').innerHTML=data.groups.length?data.groups.map(g=>`<label><input type="checkbox" name="group" value="${esc(g.id)}" ${w?.groups.includes(g.id)?'checked':''}>${esc(g.name)}</label>`).join(''):'Chưa có nhóm. Bạn có thể tạo nhóm trước.'; $('#word-dialog').showModal(); }
+$('#add-word').onclick=()=>openWord(); $('#cancel').onclick=()=>$('#word-dialog').close();
+$('#word-form').onsubmit=e=>{ e.preventDefault(); const f=e.target, japanese=f.elements.japanese.value.trim(), romaji=f.elements.romaji.value.trim(), meaning=f.elements.meaning.value.trim(); if(!japanese||!romaji)return; const word={id:editing||id(),japanese,romaji,meaning,groups:[...f.querySelectorAll('[name=group]:checked')].map(x=>x.value)}; if(editing) data.words[data.words.findIndex(w=>w.id===editing)]=word; else data.words.push(word); $('#word-dialog').close(); render(); save(); };
+$('#word-list').onclick=e=>{ const b=e.target.closest('button'); if(!b)return; const key=b.dataset.speak||b.dataset.edit||b.dataset.delete, w=data.words.find(x=>x.id===key); if(!w)return; if(b.dataset.speak)speak(w.japanese); else if(b.dataset.edit)openWord(w); else if(confirm(`Xóa từ ${w.japanese}?`)){data.words=data.words.filter(x=>x.id!==key);render();save();} };
+const modes={rj:['romaji','japanese'],jr:['japanese','romaji'],jv:['japanese','meaning'],vj:['meaning','japanese']};
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a; }
+$('#quiz-form').onsubmit=e=>{ e.preventDefault(); const f=e.target, group=f.elements.group.value, mode=f.elements.mode.value, count=Number(f.elements.count.value), pool=data.words.filter(w=>!group||w.groups.includes(group)); const candidates=[]; for(const [key,[from,to]] of Object.entries(modes)){ if(mode!=='mixed'&&mode!==key)continue; for(const w of pool){ if(!w[from]||!w[to])continue; const answers=[...new Set(pool.filter(x=>x[from]&&x[to]).map(x=>x[to]))].filter(x=>x!==w[to]); if(answers.length<1)continue; candidates.push({word:w,from,to,choices:shuffle([w[to],...shuffle(answers).slice(0,3)])}); } } questions=shuffle(candidates).slice(0,count); current=0;score=0; if(!questions.length){$('#quiz-play').innerHTML='<p>Cần ít nhất 2 đáp án khác nhau trong nhóm đã chọn. Hãy thêm từ hoặc nghĩa.</p>';return;} showQuestion(); };
+function showQuestion(){if(current>=questions.length){$('#quiz-play').innerHTML=`<h3>Hoàn thành! 🎉</h3><p>Bạn trả lời đúng ${score}/${questions.length} câu.</p><p>Chọn lại cài đặt và bắt đầu để luyện thêm.</p>`;return;} const q=questions[current], labels={japanese:'Tiếng Nhật',romaji:'Romaji',meaning:'Tiếng Việt'}; $('#quiz-play').innerHTML=`<p>Câu ${current+1}/${questions.length} · ${labels[q.from]} → ${labels[q.to]}</p><h2>${esc(q.word[q.from])}</h2><button class="secondary" id="quiz-speak">🔊 Phát âm</button><div>${q.choices.map((x,i)=>`<button class="choice" data-choice="${i}">${esc(x)}</button>`).join('')}</div><div id="answer"></div>`; $('#quiz-speak').onclick=()=>speak(q.word.japanese); $('#quiz-play').querySelectorAll('[data-choice]').forEach(b=>b.onclick=()=>{ const correct=q.choices[Number(b.dataset.choice)]===q.word[q.to]; if(correct)score++; $('#quiz-play').querySelectorAll('[data-choice]').forEach(x=>{ x.disabled=true; if(q.choices[Number(x.dataset.choice)]===q.word[q.to]) x.classList.add('correct'); else if(x===b) x.classList.add('incorrect'); }); $('#answer').innerHTML=`<p class="feedback ${correct?'correct':'incorrect'}">${correct?'Chính xác!':'Chưa đúng. Đáp án: '+esc(q.word[q.to])}</p><button id="next">${current+1===questions.length?'Xem kết quả':'Câu tiếp theo'}</button>`; $('#next').onclick=()=>{current++;showQuestion();}; }); }
+
+
+
+
+status('Đang tải dữ liệu chung…');
+load().then(() => {
+  render(); $('#content').hidden = false; $('#backup').hidden = false;
+  status('Đã kết nối Learning Together');
+}).catch(e => status('Không thể tải dữ liệu chung: ' + e.message));
+</script></body></html>
+
+

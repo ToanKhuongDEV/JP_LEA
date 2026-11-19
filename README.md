@@ -19,3 +19,19 @@ Hạn chế: Chỉ sửa trên một thiết bị tại một thời điểm. Ki
 Google: https://developers.google.com/workspace/drive/api/guides/appdata và https://developers.google.com/identity/oauth2/web/guides/get-google-api-clientid
 
 
+
+Để bổ sung từ mà vẫn giữ danh sách hiện tại, chọn **Nhập thêm từ JSON** trong mục Từ vựng rồi chọn file cùng định dạng với `hiragana.json` hoặc bản sao đã tải. Nhóm trùng tên được dùng lại; từ có ID đã tồn tại được bỏ qua. File cần có `version: 1`, mảng `groups` (mỗi nhóm có `id`, `name`) và mảng `words` (mỗi từ có `id`, `japanese`, `romaji`, `meaning`, `groups` chứa ID nhóm trong file).
+
+## Learning Together với Google Sheets
+
+Đây là khu vực từ vựng chung ngay trên website, không cần đăng nhập, độc lập với dữ liệu Google Drive cá nhân. Tạo một **bảng tính Google Sheets mới, riêng cho ứng dụng**; không dùng bảng chứa dữ liệu quan trọng khác.
+
+1. Trong bảng tính chọn **Tiện ích mở rộng → Apps Script**. Thay nội dung `Code.gs` bằng file [together/Code.gs](together/Code.gs) của dự án.
+2. Thêm file HTML tên `Bridge`, sao chép toàn bộ [together/Bridge.html](together/Bridge.html) vào đó và lưu dự án. Nếu muốn giữ đường dẫn web app độc lập cũ, giữ cả file `Index`.
+3. Chọn hàm `setup` và chạy một lần trong trình chỉnh sửa Apps Script; cấp quyền cho tài khoản chủ bảng. Hàm tạo trang `LearningTogether`; không chỉnh sửa trực tiếp các ô trong trang này.
+4. Chọn **Triển khai → Lần triển khai mới → Ứng dụng web**, đặt **Thực thi dưới quyền: Tôi**, **Người có quyền truy cập: Mọi người**. Sao chép URL triển khai kết thúc bằng `/exec`.
+5. Để hiện liên kết Learning Together trên GitHub Pages, tạo repository variable `TOGETHER_URL` chứa URL đó rồi chạy lại workflow deploy. Khi chạy tại máy, đặt URL vào `TOGETHER_URL` trong `config.js`.
+
+Với bản triển khai Apps Script đã có, cập nhật `Code.gs`, thêm `Bridge`, rồi vào **Triển khai → Quản lý các tùy chọn triển khai → Chỉnh sửa**, chọn **Phiên bản mới** và triển khai. Không chạy lại `setup`: dữ liệu chung hiện có được giữ lại. Sau đó cập nhật website GitHub Pages. Giao diện Learning Together trên website dùng chung mã giao diện với khu vực cá nhân.
+
+Mọi người có URL đều có thể đọc, thêm, sửa và xóa dữ liệu chung; đường dẫn không phải mật khẩu. Hãy chỉ lưu nội dung công khai và sao lưu thường xuyên bằng nút tải bản sao. Khi hai người cùng sửa, bản lưu cũ bị từ chối: tải bản sao để giữ thay đổi rồi tải lại trang trước khi sửa tiếp. Google áp dụng [hạn mức Apps Script](https://developers.google.com/apps-script/guides/services/quotas); dữ liệu chung được giới hạn khoảng 3 triệu ký tự. Bảng tính lưu dữ liệu ở dạng JSON chia thành nhiều ô, không phải bảng từ vựng có thể sửa trực tiếp.
