@@ -27,6 +27,7 @@ jobs:
           node --check app.js
           node --check config.js
           node session.test.cjs
+          node quiz-feedback.test.cjs
       - name: Prepare site
         env:
           GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
