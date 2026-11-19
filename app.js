@@ -7,11 +7,16 @@ let data = empty(), token = '', fileId = '', remoteRevision = '', dirty = false,
 const status = text => $('#status').textContent = text;
 const scope = 'https://www.googleapis.com/auth/drive.appdata';
 const rememberKey = 'jp-lea-remember';
+const sessionKey = 'jp-lea-session';
 $('#remember').checked = localStorage.getItem(rememberKey) !== 'false';
-$('#remember').onchange = () => localStorage.setItem(rememberKey, String($('#remember').checked));
+$('#remember').onchange = () => {
+  localStorage.setItem(rememberKey, String($('#remember').checked));
+  if (!$('#remember').checked) localStorage.removeItem(sessionKey);
+};
 if (!CLIENT_ID) $('#setup').hidden = false;
 async function api(url, options = {}) {
   const response = await fetch(url, {...options, headers:{Authorization:`Bearer ${token}`, ...options.headers}});
+  if (response.status === 401) localStorage.removeItem(sessionKey);
   if (!response.ok) throw new Error(response.status === 401 ? 'Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.' : `Google Drive báo lỗi ${response.status}.`);
   return response.status === 204 ? null : response.json();
 }
@@ -56,7 +61,12 @@ $('#login').onclick = () => {
   if (dirty || busy) { alert('Có thay đổi chưa lưu. Hãy tải bản sao dữ liệu trước khi tải lại trang hoặc đổi tài khoản.'); return; }
   google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope,callback:async response => {
     if (response.error) { status('Không thể đăng nhập Google.'); return; }
-    token=response.access_token; $('#content').hidden=true; status('Đang tải dữ liệu…');
+    localStorage.removeItem(sessionKey);
+    token=response.access_token;
+    if ($('#remember').checked && response.expires_in > 0) {
+      localStorage.setItem(sessionKey, JSON.stringify({token, expires: Date.now() + Number(response.expires_in) * 1000}));
+    }
+    $('#content').hidden=true; status('Đang tải dữ liệu…');
     try { await load(); dirty=false; render(); localStorage.setItem(rememberKey, String($('#remember').checked)); $('#content').hidden=false; $('#backup').hidden=false; $('#restore').hidden=false; $('#login').textContent='Đổi tài khoản'; status('Đã kết nối Google Drive'); }
     catch(e) { status(e.message); }
   },error_callback:()=>status('Đăng nhập bị hủy hoặc gặp lỗi.')}).requestAccessToken({prompt: token || !$('#remember').checked ? 'select_account' : ''});
@@ -101,3 +111,28 @@ $('#quiz-form').onsubmit=e=>{ e.preventDefault(); const f=e.target, group=f.elem
 function showQuestion(){if(current>=questions.length){$('#quiz-play').innerHTML=`<h3>Hoàn thành! 🎉</h3><p>Bạn trả lời đúng ${score}/${questions.length} câu.</p><p>Chọn lại cài đặt và bắt đầu để luyện thêm.</p>`;return;} const q=questions[current], labels={japanese:'Tiếng Nhật',romaji:'Romaji',meaning:'Tiếng Việt'}; $('#quiz-play').innerHTML=`<p>Câu ${current+1}/${questions.length} · ${labels[q.from]} → ${labels[q.to]}</p><h2>${esc(q.word[q.from])}</h2><button class="secondary" id="quiz-speak">🔊 Phát âm</button><div>${q.choices.map((x,i)=>`<button class="choice" data-choice="${i}">${esc(x)}</button>`).join('')}</div><div id="answer"></div>`; $('#quiz-speak').onclick=()=>speak(q.word.japanese); $('#quiz-play').querySelectorAll('[data-choice]').forEach(b=>b.onclick=()=>{ const correct=q.choices[Number(b.dataset.choice)]===q.word[q.to]; if(correct)score++; $('#quiz-play').querySelectorAll('[data-choice]').forEach(x=>x.disabled=true); $('#answer').innerHTML=`<p class="feedback">${correct?'Chính xác!':'Chưa đúng. Đáp án: '+esc(q.word[q.to])}</p><button id="next">${current+1===questions.length?'Xem kết quả':'Câu tiếp theo'}</button>`; $('#next').onclick=()=>{current++;showQuestion();}; }); }
 
 
+
+async function restoreSession() {
+  if (!CLIENT_ID || !$('#remember').checked) return;
+  let saved;
+  try { saved = JSON.parse(localStorage.getItem(sessionKey)); } catch { localStorage.removeItem(sessionKey); return; }
+  if (!saved || typeof saved.token !== 'string' || !Number.isFinite(saved.expires) || saved.expires <= Date.now()) {
+    localStorage.removeItem(sessionKey);
+    return;
+  }
+  token = saved.token;
+  status('?ang t?i d? li?u?');
+  try {
+    await load();
+    render();
+    $('#content').hidden = false;
+    $('#backup').hidden = false;
+    $('#restore').hidden = false;
+    $('#login').textContent = '??i t?i kho?n';
+    status('?? k?t n?i Google Drive');
+  } catch (e) {
+    token = '';
+    status(e.message);
+  }
+}
+restoreSession();
