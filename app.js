@@ -6,6 +6,9 @@ const empty = () => ({version:1, words:[], groups:[]});
 let data = empty(), token = '', fileId = '', remoteRevision = '', dirty = false, busy = false, editing = null, questions = [], current = 0, score = 0;
 const status = text => $('#status').textContent = text;
 const scope = 'https://www.googleapis.com/auth/drive.appdata';
+const rememberKey = 'jp-lea-remember';
+$('#remember').checked = localStorage.getItem(rememberKey) !== 'false';
+$('#remember').onchange = () => localStorage.setItem(rememberKey, String($('#remember').checked));
 if (!CLIENT_ID) $('#setup').hidden = false;
 async function api(url, options = {}) {
   const response = await fetch(url, {...options, headers:{Authorization:`Bearer ${token}`, ...options.headers}});
@@ -54,9 +57,9 @@ $('#login').onclick = () => {
   google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope,callback:async response => {
     if (response.error) { status('Không thể đăng nhập Google.'); return; }
     token=response.access_token; $('#content').hidden=true; status('Đang tải dữ liệu…');
-    try { await load(); dirty=false; render(); $('#content').hidden=false; $('#backup').hidden=false; $('#restore').hidden=false; $('#login').textContent='Đổi tài khoản'; status('Đã kết nối Google Drive'); }
+    try { await load(); dirty=false; render(); localStorage.setItem(rememberKey, String($('#remember').checked)); $('#content').hidden=false; $('#backup').hidden=false; $('#restore').hidden=false; $('#login').textContent='Đổi tài khoản'; status('Đã kết nối Google Drive'); }
     catch(e) { status(e.message); }
-  },error_callback:()=>status('Đăng nhập bị hủy hoặc gặp lỗi.')}).requestAccessToken({prompt:'select_account'});
+  },error_callback:()=>status('Đăng nhập bị hủy hoặc gặp lỗi.')}).requestAccessToken({prompt: token || !$('#remember').checked ? 'select_account' : ''});
 };
 $('#retry').onclick=save;
 $('#backup').onclick=()=>{ const a=document.createElement('a'); const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.href=url; a.download='japanese-study-backup.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000); };
