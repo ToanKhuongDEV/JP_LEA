@@ -1,4 +1,4 @@
-﻿import { CLIENT_ID } from './config.js';
+import { CLIENT_ID } from './config.js';
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const id = () => crypto.randomUUID();
@@ -44,7 +44,7 @@ async function save() {
     }
     status('Đã lưu trên Google Drive');
   } catch(e) { dirty=true; status(`Chưa lưu: ${e.message}`); }
-  finally { busy=false; #retry.hidden=!dirty; }
+  finally { busy=false; $('#retry').hidden=!dirty; }
 }
 window.addEventListener('beforeunload', e => { if (dirty || busy) { e.preventDefault(); e.returnValue=''; } });
 $('#login').onclick = () => {
@@ -54,12 +54,12 @@ $('#login').onclick = () => {
   google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope,callback:async response => {
     if (response.error) { status('Không thể đăng nhập Google.'); return; }
     token=response.access_token; $('#content').hidden=true; status('Đang tải dữ liệu…');
-    try { await load(); dirty=false; render(); $('#content').hidden=false; $('#login').textContent='Đổi tài khoản'; status('Đã kết nối Google Drive'); }
+    try { await load(); dirty=false; render(); $('#content').hidden=false; $('#backup').hidden=false; $('#restore').hidden=false; $('#login').textContent='Đổi tài khoản'; status('Đã kết nối Google Drive'); }
     catch(e) { status(e.message); }
   },error_callback:()=>status('Đăng nhập bị hủy hoặc gặp lỗi.')}).requestAccessToken({prompt:'select_account'});
 };
-#retry.onclick=save;
-#backup.onclick=()=>{ const a=document.createElement('a'); const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.href=url; a.download='japanese-study-backup.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000); };
+$('#retry').onclick=save;
+$('#backup').onclick=()=>{ const a=document.createElement('a'); const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); a.href=url; a.download='japanese-study-backup.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000); };
 $('#restore').onclick=()=>$('#restore-file').click();
 $('#restore-file').onchange=async e=>{
   const file=e.target.files[0]; if(!file)return;
