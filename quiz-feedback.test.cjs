@@ -6,7 +6,7 @@ const fn = source.slice(source.indexOf('function showQuestion()'), source.indexO
 function check(selected) {
   const buttons = ['0','1'].map(i => ({dataset:{choice:i}, classList:{values:[],add(c){this.values.push(c)}}}));
   const els = {'#quiz-play': {innerHTML:'',querySelectorAll:()=>buttons}, '#quiz-speak':{}, '#answer':{innerHTML:''}, '#next':{}};
-  const context = {$: key => els[key], questions:[{word:{japanese:'a',romaji:'a'},from:'japanese',to:'romaji',choices:['a','b']}], current:0, score:0, esc:s=>s, speak:()=>{}};
+  const context = {$: key => els[key], questions:[{word:{japanese:'a',romaji:'a'},from:'japanese',to:'romaji',choices:['a','b']}], current:0, score:0, esc:s=>s, speak:()=>{}, record:()=>{}};
   vm.runInNewContext(fn + '\nshowQuestion()', context);
   buttons[selected].onclick();
   assert(buttons[0].classList.values.includes('correct'));

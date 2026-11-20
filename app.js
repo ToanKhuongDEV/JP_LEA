@@ -8,8 +8,34 @@ if (typeof TOGETHER_URL !== 'undefined' && TOGETHER_URL) {
 }
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const id = () => crypto.randomUUID();
+const clone = v => JSON.parse(JSON.stringify(v));
+function mergeById(baseItems, local, remote) {
+  const b = new Map(baseItems.map(x => [x.id, x])), l = new Map(local.map(x => [x.id, x])), have = new Set(remote.map(x => x.id));
+  const same = (x, y) => JSON.stringify(x) === JSON.stringify(y), out = [];
+  for (const r of remote) {
+    const mine = l.get(r.id), old = b.get(r.id);
+    if (mine) out.push(old && same(mine, old) ? r : mine);
+    else if (!old) out.push(r);
+  }
+  for (const mine of local) {
+    if (have.has(mine.id)) continue;
+    const old = b.get(mine.id);
+    if (!old || !same(mine, old)) out.push(mine);
+  }
+  return out;
+}
+function mergeData(baseData, local, remote) {
+  const remap = new Map(), seen = new Map(), groups = [];
+  for (const g of mergeById(baseData.groups, local.groups, remote.groups)) {
+    const key = g.name.toLowerCase();
+    if (seen.has(key)) remap.set(g.id, seen.get(key)); else { seen.set(key, g.id); groups.push(g); }
+  }
+  const ids = new Set(groups.map(g => g.id));
+  const words = mergeById(baseData.words, local.words, remote.words).map(w => ({...w, groups:[...new Set(w.groups.map(g => remap.get(g) || g))].filter(g => ids.has(g))}));
+  return {...remote, groups, words};
+}
 const empty = () => ({version:1, words:[], groups:[]});
-let data = empty(), token = '', fileId = '', remoteRevision = '', dirty = false, busy = false, editing = null, questions = [], current = 0, score = 0;
+let base = empty(), data = empty(), token = '', fileId = '', remoteRevision = '', dirty = false, busy = false, editing = null, questions = [], current = 0, score = 0;
 const status = text => $('#status').textContent = text;
 const scope = 'https://www.googleapis.com/auth/drive.appdata';
 const rememberKey = 'jp-lea-remember';
@@ -61,7 +87,7 @@ async function load() {
   if (sharedMode) {
     if (!sharedCall) throw new Error('Learning Together chưa được cấu hình.');
     const shared = await sharedCall('getSharedData');
-    data = shared.data; remoteRevision = shared.revision; return;
+    data = shared.data; remoteRevision = shared.revision; base = clone(data); return;
   }
   const found = await api('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q='+encodeURIComponent("name = 'japanese-study.json' and trashed = false")+'&fields=files(id,version)&pageSize=100');
   if (found.files.length > 1) throw new Error('Có nhiều bản dữ liệu trên Drive. Không thể tự chọn bản an toàn.');
@@ -76,12 +102,22 @@ async function save() {
   dirty = true; status('Chưa đồng bộ');
   if (busy) return;
   busy = true;
+  let merged = false;
   try {
     while (dirty) {
       dirty = false; status(sharedMode ? 'Đang lưu dữ liệu chung…' : 'Đang lưu lên Drive…');
       const snapshot = JSON.stringify(data);
       if (sharedMode) {
-        remoteRevision = await sharedCall('saveSharedData', remoteRevision, JSON.parse(snapshot));
+        for (let attempt = 0; ; attempt++) {
+          try {
+            const sent = attempt ? JSON.stringify(data) : snapshot;
+            remoteRevision = await sharedCall('saveSharedData', remoteRevision, JSON.parse(sent)); base = JSON.parse(sent); break;
+          } catch (e) {
+            if (attempt >= 3 || !/đã thay đổi/.test(e.message)) throw e;
+            const remote = await sharedCall('getSharedData');
+            data = mergeData(base, data, remote.data); base = clone(remote.data); remoteRevision = remote.revision; merged = true; render();
+          }
+        }
       } else if (fileId) {
         const meta = await api(`https://www.googleapis.com/drive/v3/files/${fileId}?fields=version`);
         if (meta.version !== remoteRevision) throw new Error('Dữ liệu trên Drive đã thay đổi ở thiết bị khác. Hãy tải lại trang trước khi sửa tiếp.');
@@ -94,11 +130,28 @@ async function save() {
         fileId=saved.id; remoteRevision=saved.version;
       }
     }
-    status(sharedMode ? 'Đã lưu dữ liệu chung' : 'Đã lưu trên Google Drive');
+    status(sharedMode ? (merged ? 'Đã lưu và hợp nhất với thay đổi của người khác' : 'Đã lưu dữ liệu chung') : 'Đã lưu trên Google Drive');
   } catch(e) { dirty=true; status(`Chưa lưu: ${e.message}`); }
   finally { busy=false; $('#retry').hidden=!dirty; }
 }
-window.addEventListener('beforeunload', e => { if (dirty || busy) { e.preventDefault(); e.returnValue=''; } });
+let lastRefresh = Date.now();
+async function refresh(manual) {
+  if (!sharedMode || !sharedCall) return;
+  if (busy || dirty) { if (manual) status('Đang có thay đổi chưa lưu, chưa thể làm mới.'); return; }
+  lastRefresh = Date.now();
+  if (manual) status('Đang làm mới…');
+  try {
+    const remote = await sharedCall('getSharedData');
+    if (busy || dirty) return;
+    if (remote.revision !== remoteRevision) { data = remote.data; remoteRevision = remote.revision; base = clone(data); render(); status('Đã cập nhật thay đổi mới của người khác'); }
+    else if (manual) status('Dữ liệu chung đã là bản mới nhất');
+  } catch (e) { if (manual) status('Không thể làm mới: ' + e.message); }
+}
+$('#refresh').onclick = () => refresh(true);
+if (sharedMode && typeof document.addEventListener === 'function') document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && Date.now() - lastRefresh > 15000) refresh(false);
+});
+window.addEventListener('beforeunload', e => { if (dirty || busy || saveTimer) { e.preventDefault(); e.returnValue=''; } });
 $('#login').onclick = () => {
   if (!CLIENT_ID) { $('#setup').hidden=false; return; }
   if (!window.google?.accounts?.oauth2) { status('Google chưa tải xong, hãy thử lại.'); return; }
@@ -163,7 +216,7 @@ function renderWords() {
   $('#word-list').innerHTML=words.length ? words.map(w=>`<div class="row"><div><strong>${esc(w.japanese)}</strong> <span>${esc(w.romaji)}</span><p>${esc(w.meaning || 'Chưa có nghĩa tiếng Việt')}</p><div class="tags">${w.groups.map(g=>esc(data.groups.find(x=>x.id===g)?.name||'')).filter(Boolean).join(' · ')}</div></div><div class="row-actions"><button data-speak="${esc(w.id)}" aria-label="Phát âm ${esc(w.japanese)}">🔊</button><button data-edit="${esc(w.id)}">Sửa</button><button data-delete="${esc(w.id)}">Xóa</button></div></div>`).join('') : '<p>Chưa có từ phù hợp. Hãy thêm từ mới nhé.</p>';
 }
 function speak(text) { if (!('speechSynthesis' in window)) return alert('Trình duyệt không hỗ trợ phát âm.'); const voices=speechSynthesis.getVoices(); const voice=voices.find(v=>v.lang.toLowerCase().startsWith('ja')); if (!voice) return alert('Thiết bị chưa có giọng đọc tiếng Nhật.'); const u=new SpeechSynthesisUtterance(text); u.lang='ja-JP'; u.voice=voice; speechSynthesis.cancel(); speechSynthesis.speak(u); }
-document.querySelector('nav').onclick=e=>{ const b=e.target.closest('[data-tab]'); if(!b)return; document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b)); document.querySelectorAll('.panel').forEach(x=>x.hidden=x.id!==b.dataset.tab); };
+document.querySelector('nav').onclick=e=>{ const b=e.target.closest('[data-tab]'); if(!b)return; document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b)); document.querySelectorAll('.panel').forEach(x=>x.hidden=x.id!==b.dataset.tab); if(b.dataset.tab==='stats')renderStats(); };
 $('#search').oninput=renderWords; $('#filter-group').onchange=renderWords;
 $('#group-form').onsubmit=e=>{ e.preventDefault(); const name=e.target.elements.name.value.trim(); if(!name)return; if(data.groups.some(g=>g.name.toLowerCase()===name.toLowerCase()))return alert('Tên nhóm đã tồn tại.'); data.groups.push({id:id(),name}); e.target.reset(); render(); save(); };
 $('#group-list').onclick=e=>{ const rename=e.target.dataset.rename, del=e.target.dataset.deleteGroup, g=data.groups.find(x=>x.id===(rename||del)); if(!g)return; if(rename){ const name=prompt('Tên nhóm:',g.name)?.trim(); if(!name)return; if(data.groups.some(x=>x.id!==g.id&&x.name.toLowerCase()===name.toLowerCase()))return alert('Tên nhóm đã tồn tại.'); g.name=name; } else { if(!confirm('Xóa nhóm này? Các từ vẫn được giữ lại.'))return; data.groups=data.groups.filter(x=>x.id!==del); data.words.forEach(w=>w.groups=w.groups.filter(x=>x!==del)); } render(); save(); };
@@ -173,8 +226,81 @@ $('#word-form').onsubmit=e=>{ e.preventDefault(); const f=e.target, japanese=f.e
 $('#word-list').onclick=e=>{ const b=e.target.closest('button'); if(!b)return; const key=b.dataset.speak||b.dataset.edit||b.dataset.delete, w=data.words.find(x=>x.id===key); if(!w)return; if(b.dataset.speak)speak(w.japanese); else if(b.dataset.edit)openWord(w); else if(confirm(`Xóa từ ${w.japanese}?`)){data.words=data.words.filter(x=>x.id!==key);render();save();} };
 const modes={rj:['romaji','japanese'],jr:['japanese','romaji'],jv:['japanese','meaning'],vj:['meaning','japanese']};
 function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a; }
-$('#quiz-form').onsubmit=e=>{ e.preventDefault(); const f=e.target, group=f.elements.group.value, mode=f.elements.mode.value, count=Number(f.elements.count.value), pool=data.words.filter(w=>!group||w.groups.includes(group)); const candidates=[]; for(const [key,[from,to]] of Object.entries(modes)){ if(mode!=='mixed'&&mode!==key)continue; for(const w of pool){ if(!w[from]||!w[to])continue; const answers=[...new Set(pool.filter(x=>x[from]&&x[to]).map(x=>x[to]))].filter(x=>x!==w[to]); if(answers.length<1)continue; candidates.push({word:w,from,to,choices:shuffle([w[to],...shuffle(answers).slice(0,3)])}); } } questions=shuffle(candidates).slice(0,count); current=0;score=0; if(!questions.length){$('#quiz-play').innerHTML='<p>Cần ít nhất 2 đáp án khác nhau trong nhóm đã chọn. Hãy thêm từ hoặc nghĩa.</p>';return;} showQuestion(); };
-function showQuestion(){if(current>=questions.length){$('#quiz-play').innerHTML=`<h3>Hoàn thành! 🎉</h3><p>Bạn trả lời đúng ${score}/${questions.length} câu.</p><p>Chọn lại cài đặt và bắt đầu để luyện thêm.</p>`;return;} const q=questions[current], labels={japanese:'Tiếng Nhật',romaji:'Romaji',meaning:'Tiếng Việt'}; $('#quiz-play').innerHTML=`<p>Câu ${current+1}/${questions.length} · ${labels[q.from]} → ${labels[q.to]}</p><h2>${esc(q.word[q.from])}</h2><button class="secondary" id="quiz-speak">🔊 Phát âm</button><div>${q.choices.map((x,i)=>`<button class="choice" data-choice="${i}">${esc(x)}</button>`).join('')}</div><div id="answer"></div>`; $('#quiz-speak').onclick=()=>speak(q.word.japanese); $('#quiz-play').querySelectorAll('[data-choice]').forEach(b=>b.onclick=()=>{ const correct=q.choices[Number(b.dataset.choice)]===q.word[q.to]; if(correct)score++; $('#quiz-play').querySelectorAll('[data-choice]').forEach(x=>{ x.disabled=true; if(q.choices[Number(x.dataset.choice)]===q.word[q.to]) x.classList.add('correct'); else if(x===b) x.classList.add('incorrect'); }); $('#answer').innerHTML=`<p class="feedback ${correct?'correct':'incorrect'}">${correct?'Chính xác!':'Chưa đúng. Đáp án: '+esc(q.word[q.to])}</p><button id="next">${current+1===questions.length?'Xem kết quả':'Câu tiếp theo'}</button>`; $('#next').onclick=()=>{current++;showQuestion();}; }); }
+const intervals=[0,1,3,7,14,30], progressKey='jp-lea-progress', quizLabels={japanese:'Tiếng Nhật',romaji:'Romaji',meaning:'Tiếng Việt'};
+let sharedProgress=null, saveTimer=0;
+const today=()=>{ const d=new Date(); return Math.floor((d.getTime()-d.getTimezoneOffset()*6e4)/864e5); };
+const validStore=p=>p&&typeof p==='object'&&p.words&&typeof p.words==='object'&&p.days&&typeof p.days==='object';
+function store() {
+  if (sharedMode) {
+    if (!sharedProgress) { try { sharedProgress=JSON.parse(localStorage.getItem(progressKey)); } catch { sharedProgress=null; } if (!validStore(sharedProgress)) sharedProgress={words:{},days:{}}; }
+    return sharedProgress;
+  }
+  if (!validStore(data.progress)) data.progress={words:{},days:{}};
+  return data.progress;
+}
+function persistProgress() {
+  if (sharedMode) { try { localStorage.setItem(progressKey,JSON.stringify(sharedProgress)); } catch {} return; }
+  status('Chưa đồng bộ'); clearTimeout(saveTimer); saveTimer=setTimeout(()=>{ saveTimer=0; save(); },3000);
+}
+function record(word, correct) {
+  const s=store(), p=s.words[word.id]||{box:0,due:0,correct:0,wrong:0}, d=today();
+  if (correct) { p.correct++; p.box=Math.min(p.box+1,intervals.length-1); p.due=d+intervals[p.box]; }
+  else { p.wrong++; p.box=0; p.due=d; }
+  s.words[word.id]=p; s.days[d]=(s.days[d]||0)+1; persistProgress();
+}
+const fold=(text,to)=>to==='japanese' ? String(text).normalize('NFC').replace(/\s/g,'') : String(text).normalize('NFD').replace(/\p{M}/gu,'').replace(/đ/gi,'d').toLowerCase().replace(/[\s'’\-.,!?]/g,'');
+function buildQuestions(f) {
+  const group=f.elements.group.value, mode=f.elements.mode.value, count=Number(f.elements.count.value), format=f.elements.format.value, scope=f.elements.scope.value, d=today(), s=store();
+  const groupPool=data.words.filter(w=>!group||w.groups.includes(group));
+  const pool=groupPool.filter(w=>{ const p=s.words[w.id]; return scope==='due' ? !p||p.due<=d : scope==='weak' ? p&&p.wrong>0&&p.box<3 : true; });
+  let candidates=[];
+  for (const [key,[from,to]] of Object.entries(modes)) {
+    if (mode!=='mixed'&&mode!==key) continue;
+    for (const w of pool) {
+      if (!w[from]||!w[to]) continue;
+      if (format!=='choice') { candidates.push({word:w,from,to,format}); continue; }
+      const answers=[...new Set(groupPool.filter(x=>x[from]&&x[to]).map(x=>x[to]))].filter(x=>x!==w[to]);
+      if (answers.length<1) continue;
+      candidates.push({word:w,from,to,format,choices:shuffle([w[to],...shuffle(answers).slice(0,3)])});
+    }
+  }
+  candidates=shuffle(candidates);
+  if (scope!=='all') { const seen=new Set(); candidates=candidates.filter(q=>!seen.has(q.word.id)&&seen.add(q.word.id)); }
+  if (scope==='weak') candidates.sort((a,b)=>(s.words[b.word.id]?.wrong||0)-(s.words[a.word.id]?.wrong||0));
+  return candidates.slice(0,count);
+}
+$('#quiz-form').onsubmit=e=>{ e.preventDefault(); questions=buildQuestions(e.target); current=0; score=0; if(!questions.length){$('#quiz-play').innerHTML='<p>Không có câu hỏi phù hợp. Hãy đổi nguồn từ, nhóm hoặc hình thức, hoặc thêm từ và nghĩa (trắc nghiệm cần ít nhất 2 đáp án khác nhau).</p>';return;} showQuestion(); };
+function quizHeader(q) { return `<p>Câu ${current+1}/${questions.length} · ${quizLabels[q.from]} → ${quizLabels[q.to]}</p><h2>${esc(q.word[q.from])}</h2><button class="secondary" id="quiz-speak" type="button">🔊 Phát âm</button>`; }
+function answered(q, correct) {
+  record(q.word, correct); if (correct) score++;
+  $('#answer').innerHTML=`<p class="feedback ${correct?'correct':'incorrect'}">${correct?'Chính xác!':'Chưa đúng. Đáp án: '+esc(q.word[q.to])}</p><button id="next">${current+1===questions.length?'Xem kết quả':'Câu tiếp theo'}</button>`;
+  $('#next').onclick=()=>{ current++; showQuestion(); }; $('#next').focus();
+}
+function showTyping(q) {
+  $('#quiz-play').innerHTML=quizHeader(q)+'<form id="typing-form" autocomplete="off"><input name="answer" aria-label="Câu trả lời" placeholder="Gõ đáp án" required><button>Kiểm tra</button></form><div id="answer"></div>';
+  $('#quiz-speak').onclick=()=>speak(q.word.japanese);
+  const form=$('#typing-form'); form.elements.answer.focus();
+  form.onsubmit=ev=>{ ev.preventDefault(); const input=form.elements.answer; input.disabled=true; form.querySelector('button').disabled=true; answered(q, fold(input.value,q.to)===fold(q.word[q.to],q.to)); };
+}
+function showFlash(q) {
+  $('#quiz-play').innerHTML=quizHeader(q)+'<div id="answer"><button id="flip">Lật thẻ</button></div>';
+  $('#quiz-speak').onclick=()=>speak(q.word.japanese);
+  $('#flip').onclick=()=>{
+    $('#answer').innerHTML=`<h2 class="flash-back">${esc(q.word[q.to])}</h2><div class="actions"><button class="secondary" id="forgot">Chưa nhớ</button><button id="knew">Đã nhớ</button></div>`;
+    const rate=ok=>{ record(q.word,ok); if (ok) score++; current++; showQuestion(); };
+    $('#forgot').onclick=()=>rate(false); $('#knew').onclick=()=>rate(true);
+  };
+}
+function streak(days) { let d=today(), n=0; if (!days[d]) d--; while (days[d]) { n++; d--; } return n; }
+function renderStats() {
+  const s=store(), d=today(), entries=data.words.map(w=>({w,p:s.words[w.id]}));
+  const seen=entries.filter(x=>x.p), total=seen.reduce((n,x)=>n+x.p.correct+x.p.wrong,0), right=seen.reduce((n,x)=>n+x.p.correct,0);
+  const tiles=[['Tổng số từ',data.words.length],['Chưa học',entries.length-seen.length],['Đang học',seen.filter(x=>x.p.box<3).length],['Đã thuộc',seen.filter(x=>x.p.box>=3).length],['Đến hạn ôn hôm nay',seen.filter(x=>x.p.due<=d).length],['Chuỗi ngày học',streak(s.days)],['Số lượt trả lời hôm nay',s.days[d]||0],['Tỉ lệ đúng',total?Math.round(right/total*100)+'%':'–']];
+  const weak=seen.filter(x=>x.p.wrong>0).sort((a,b)=>b.p.wrong-a.p.wrong).slice(0,10);
+  $('#stats-note').textContent=sharedMode?'Tiến độ học chỉ lưu trên thiết bị này, không chia sẻ với người khác.':'Tiến độ học được lưu cùng dữ liệu trên Google Drive của bạn.';
+  $('#stats-body').innerHTML=`<div class="stat-grid">${tiles.map(([k,v])=>`<div class="stat"><strong>${v}</strong><span>${k}</span></div>`).join('')}</div><h3>Từ hay sai</h3>`+(weak.length?weak.map(x=>`<div class="row"><div><strong>${esc(x.w.japanese)}</strong> <span>${esc(x.w.romaji)}</span><p>${esc(x.w.meaning)}</p></div><div>Sai ${x.p.wrong} · Đúng ${x.p.correct}</div></div>`).join(''):'<p>Chưa có từ nào bị sai.</p>');
+}
+function showQuestion(){if(current>=questions.length){$('#quiz-play').innerHTML=`<h3>Hoàn thành! 🎉</h3><p>Bạn trả lời đúng/nhớ được ${score}/${questions.length} câu.</p><p>Chọn lại cài đặt và bắt đầu để luyện thêm.</p>`;return;} const q=questions[current], labels={japanese:'Tiếng Nhật',romaji:'Romaji',meaning:'Tiếng Việt'}; if(q.format==='typing')return showTyping(q); if(q.format==='flashcard')return showFlash(q); $('#quiz-play').innerHTML=`<p>Câu ${current+1}/${questions.length} · ${labels[q.from]} → ${labels[q.to]}</p><h2>${esc(q.word[q.from])}</h2><button class="secondary" id="quiz-speak">🔊 Phát âm</button><div>${q.choices.map((x,i)=>`<button class="choice" data-choice="${i}">${esc(x)}</button>`).join('')}</div><div id="answer"></div>`; $('#quiz-speak').onclick=()=>speak(q.word.japanese); $('#quiz-play').querySelectorAll('[data-choice]').forEach(b=>b.onclick=()=>{ const correct=q.choices[Number(b.dataset.choice)]===q.word[q.to]; if(correct)score++; record(q.word,correct); $('#quiz-play').querySelectorAll('[data-choice]').forEach(x=>{ x.disabled=true; if(q.choices[Number(x.dataset.choice)]===q.word[q.to]) x.classList.add('correct'); else if(x===b) x.classList.add('incorrect'); }); $('#answer').innerHTML=`<p class="feedback ${correct?'correct':'incorrect'}">${correct?'Chính xác!':'Chưa đúng. Đáp án: '+esc(q.word[q.to])}</p><button id="next">${current+1===questions.length?'Xem kết quả':'Câu tiếp theo'}</button>`; $('#next').onclick=()=>{current++;showQuestion();}; }); }
 
 
 
@@ -207,7 +333,7 @@ if (sharedMode) {
   $('#storage-note').textContent = 'Dữ liệu chung được lưu trong Google Sheets.';
   status('Đang tải dữ liệu chung…');
   load().then(() => {
-    render(); $('#content').hidden = false; $('#backup').hidden = false;
+    render(); $('#content').hidden = false; $('#backup').hidden = false; $('#refresh').hidden = false;
     status('Đã kết nối Learning Together');
   }).catch(e => status('Không thể tải dữ liệu chung: ' + e.message));
 } else restoreSession();

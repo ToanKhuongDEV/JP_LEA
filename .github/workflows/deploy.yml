@@ -31,6 +31,8 @@ jobs:
           node import.test.cjs
           node together.test.cjs
           node shared-mode.test.cjs
+          node merge.test.cjs
+          node srs.test.cjs
       - name: Prepare site
         env:
           GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
