@@ -215,7 +215,8 @@ function renderWords() {
   const words=data.words.filter(w=>(!group||w.groups.includes(group))&&[w.japanese,w.romaji,w.meaning].some(x=>x.toLowerCase().includes(q)));
   $('#word-list').innerHTML=words.length ? words.map(w=>`<div class="row"><div><strong>${esc(w.japanese)}</strong> <span>${esc(w.romaji)}</span><p>${esc(w.meaning || 'Chưa có nghĩa tiếng Việt')}</p><div class="tags">${w.groups.map(g=>esc(data.groups.find(x=>x.id===g)?.name||'')).filter(Boolean).join(' · ')}</div></div><div class="row-actions"><button data-speak="${esc(w.id)}" aria-label="Phát âm ${esc(w.japanese)}">🔊</button><button data-edit="${esc(w.id)}">Sửa</button><button data-delete="${esc(w.id)}">Xóa</button></div></div>`).join('') : '<p>Chưa có từ phù hợp. Hãy thêm từ mới nhé.</p>';
 }
-function speak(text) { if (!('speechSynthesis' in window)) return alert('Trình duyệt không hỗ trợ phát âm.'); const voices=speechSynthesis.getVoices(); const voice=voices.find(v=>v.lang.toLowerCase().startsWith('ja')); if (!voice) return alert('Thiết bị chưa có giọng đọc tiếng Nhật.'); const u=new SpeechSynthesisUtterance(text); u.lang='ja-JP'; u.voice=voice; speechSynthesis.cancel(); speechSynthesis.speak(u); }
+function pickVoice() { const ja=speechSynthesis.getVoices().filter(v=>v.lang.toLowerCase().replace('_','-').startsWith('ja')); return ja.find(v=>/google/i.test(v.name))||ja[0]; }
+function speak(text, rate=0.9) { if (!('speechSynthesis' in window)) return alert('Trình duyệt không hỗ trợ phát âm.'); const voice=pickVoice(); if (!voice) return alert('Thiết bị chưa có giọng đọc tiếng Nhật.'); const u=new SpeechSynthesisUtterance(text); u.lang='ja-JP'; u.voice=voice; u.rate=rate; speechSynthesis.cancel(); speechSynthesis.speak(u); }
 document.querySelector('nav').onclick=e=>{ const b=e.target.closest('[data-tab]'); if(!b)return; document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b)); document.querySelectorAll('.panel').forEach(x=>x.hidden=x.id!==b.dataset.tab); if(b.dataset.tab==='stats')renderStats(); };
 $('#search').oninput=renderWords; $('#filter-group').onchange=renderWords;
 $('#group-form').onsubmit=e=>{ e.preventDefault(); const name=e.target.elements.name.value.trim(); if(!name)return; if(data.groups.some(g=>g.name.toLowerCase()===name.toLowerCase()))return alert('Tên nhóm đã tồn tại.'); data.groups.push({id:id(),name}); e.target.reset(); render(); save(); };
@@ -299,6 +300,94 @@ function renderStats() {
   const weak=seen.filter(x=>x.p.wrong>0).sort((a,b)=>b.p.wrong-a.p.wrong).slice(0,10);
   $('#stats-note').textContent=sharedMode?'Tiến độ học chỉ lưu trên thiết bị này, không chia sẻ với người khác.':'Tiến độ học được lưu cùng dữ liệu trên Google Drive của bạn.';
   $('#stats-body').innerHTML=`<div class="stat-grid">${tiles.map(([k,v])=>`<div class="stat"><strong>${v}</strong><span>${k}</span></div>`).join('')}</div><h3>Từ hay sai</h3>`+(weak.length?weak.map(x=>`<div class="row"><div><strong>${esc(x.w.japanese)}</strong> <span>${esc(x.w.romaji)}</span><p>${esc(x.w.meaning)}</p></div><div>Sai ${x.p.wrong} · Đúng ${x.p.correct}</div></div>`).join(''):'<p>Chưa có từ nào bị sai.</p>');
+}
+function markActivity() { const s=store(), d=today(); s.days[d]=(s.days[d]||0)+1; persistProgress(); }
+let sentenceBank=null, sentenceSet=[], sIndex=0, sScore=0, sState=null;
+async function loadSentences() {
+  if (sentenceBank) return sentenceBank;
+  const response=await fetch('sentences.json');
+  if (!response.ok) throw new Error('Không tải được danh sách câu mẫu.');
+  const json=await response.json();
+  if (!Array.isArray(json.sentences)||!json.sentences.length) throw new Error('Danh sách câu mẫu không hợp lệ.');
+  return sentenceBank=json.sentences;
+}
+$('#sentence-form').onsubmit=async e=>{
+  e.preventDefault(); const count=Number(e.target.elements.count.value);
+  try { const bank=await loadSentences(); sentenceSet=shuffle([...bank]).slice(0,count); sIndex=0; sScore=0; showSentence(); }
+  catch (err) { $('#sentence-play').innerHTML=`<p>${esc(err.message)}</p>`; }
+};
+function showSentence() {
+  if (sIndex>=sentenceSet.length) { $('#sentence-play').innerHTML=`<h3>Hoàn thành! 🎉</h3><p>Bạn ghép đúng ${sScore}/${sentenceSet.length} câu.</p><p>Chọn số câu và bắt đầu để luyện thêm.</p>`; return; }
+  const s=sentenceSet[sIndex], all=[...new Set(sentenceBank.flatMap(x=>x.tokens))];
+  const decoys=shuffle(all.filter(t=>!s.tokens.includes(t))).slice(0,2);
+  sState={s, chips:shuffle([...s.tokens,...decoys].map((t,i)=>({t,i}))), chosen:[], checked:false};
+  drawSentence();
+}
+function drawSentence() {
+  const st=sState, text=i=>st.chips.find(c=>c.i===i).t, bank=st.chips.filter(c=>!st.chosen.includes(c.i));
+  const chip=(i,zone)=>`<button type="button" class="chip" data-chip="${i}" data-zone="${zone}" ${st.checked?'disabled':''}>${esc(text(i))}</button>`;
+  $('#sentence-play').innerHTML=`<p>Câu ${sIndex+1}/${sentenceSet.length} · Dịch sang tiếng Nhật</p><h2>${esc(st.s.vi)}</h2><div class="sentence-answer" aria-label="Câu của bạn">${st.chosen.map(i=>chip(i,'answer')).join('')}</div><div class="sentence-bank">${bank.map(c=>chip(c.i,'bank')).join('')}</div><div id="sentence-result"></div><div class="actions"><button type="button" id="sentence-check" ${st.chosen.length&&!st.checked?'':'disabled'}>Kiểm tra</button></div>`;
+}
+$('#sentence-play').onclick=e=>{
+  const st=sState, b=e.target.closest('button'); if (!st||!b) return;
+  if (b.dataset.say) return speak(st.s.tokens.join(''), Number(b.dataset.rate)||0.9);
+  if (b.id==='sentence-next') { sIndex++; return showSentence(); }
+  if (st.checked) return;
+  if (b.dataset.chip!==undefined) {
+    const i=Number(b.dataset.chip);
+    st.chosen = b.dataset.zone==='bank' ? [...st.chosen,i] : st.chosen.filter(x=>x!==i); drawSentence();
+  } else if (b.id==='sentence-check') {
+    st.checked=true; const answer=st.chosen.map(i=>st.chips.find(c=>c.i===i).t).join(''), ok=answer===st.s.tokens.join('');
+    if (ok) sScore++; markActivity(); drawSentence();
+    $('#sentence-result').innerHTML=`<p class="feedback ${ok?'correct':'incorrect'}">${ok?'Chính xác!':'Chưa đúng.'}</p><p><strong>${esc(st.s.tokens.join(' '))}</strong><br>${esc(st.s.romaji)}</p><button type="button" class="secondary" data-say="1">🔊 Nghe</button> <button type="button" class="secondary" data-say="1" data-rate="0.6">🐢 Chậm</button> <button type="button" id="sentence-next">${sIndex+1===sentenceSet.length?'Xem kết quả':'Câu tiếp theo'}</button>`;
+  }
+};
+const speechNorm=t=>String(t).normalize('NFC').replace(/[\s、。，．,.?？!！「」]/g,'');
+function similarity(a, b) {
+  const x=[...speechNorm(a)], y=[...speechNorm(b)]; if (!x.length||!y.length) return 0;
+  let prev=Array.from({length:y.length+1},(_,i)=>i);
+  for (let i=1;i<=x.length;i++) { const cur=[i]; for (let j=1;j<=y.length;j++) cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(x[i-1]===y[j-1]?0:1)); prev=cur; }
+  return 1-prev[y.length]/Math.max(x.length,y.length);
+}
+const pronScore=(heard, targets)=>Math.max(0,...heard.flatMap(h=>targets.map(t=>similarity(h,t))));
+let pron=null;
+$('#pron-form').onsubmit=async e=>{
+  e.preventDefault(); const f=e.target.elements, count=Number(f.count.value);
+  try {
+    let items;
+    if (f.source.value==='sentences') items=(await loadSentences()).map(x=>({text:x.tokens.join(''),targets:[x.tokens.join(''),x.ja].filter(Boolean),romaji:x.romaji,vi:x.vi}));
+    else items=data.words.filter(w=>w.japanese).map(w=>({text:w.japanese,targets:[w.japanese],romaji:w.romaji,vi:w.meaning}));
+    if (!items.length) { $('#pron-play').innerHTML='<p>Chưa có nội dung để luyện. Hãy thêm từ vựng trước.</p>'; return; }
+    pron={items:shuffle(items).slice(0,count),i:0,ok:0,busy:false}; showPron();
+  } catch (err) { $('#pron-play').innerHTML=`<p>${esc(err.message)}</p>`; }
+};
+function showPron() {
+  if (pron.i>=pron.items.length) { $('#pron-play').innerHTML=`<h3>Hoàn thành! 🎉</h3><p>Bạn phát âm tốt ${pron.ok}/${pron.items.length} mục.</p>`; return; }
+  const it=pron.items[pron.i];
+  $('#pron-play').innerHTML=`<p>Mục ${pron.i+1}/${pron.items.length}</p><h2>${esc(it.text)}</h2><p>${esc(it.romaji)}${it.vi?' · '+esc(it.vi):''}</p><div class="actions"><button type="button" class="secondary" data-pron="say">🔊 Nghe</button><button type="button" class="secondary" data-pron="slow">🐢 Chậm</button><button type="button" id="pron-mic" data-pron="mic">🎤 Nói</button></div><div id="pron-result" aria-live="polite"></div>`;
+}
+$('#pron-play').onclick=e=>{
+  const b=e.target.closest('button'); if (!b||!pron) return; const it=pron.items[pron.i], kind=b.dataset.pron;
+  if (kind==='say') speak(it.text); else if (kind==='slow') speak(it.text,0.6);
+  else if (kind==='next') { pron.i++; showPron(); }
+  else if (kind==='mic') listen(it);
+};
+function listen(it) {
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition, out=$('#pron-result');
+  if (!SR) { out.innerHTML='<p class="feedback incorrect">Trình duyệt này chưa hỗ trợ nhận diện giọng nói. Hãy dùng Chrome hoặc Edge.</p>'; return; }
+  if (pron.busy) return;
+  const r=new SR(); r.lang='ja-JP'; r.interimResults=false; r.maxAlternatives=3; pron.busy=true;
+  out.innerHTML='<p>Đang nghe… hãy nói bằng tiếng Nhật.</p>'; $('#pron-mic').disabled=true;
+  let handled=false;
+  const finish=html=>{ pron.busy=false; const mic=$('#pron-mic'); if (mic) mic.disabled=false; out.innerHTML=html; };
+  r.onresult=ev=>{
+    handled=true; const heard=[...ev.results[0]].map(a=>a.transcript), score=pronScore(heard,it.targets), pct=Math.round(score*100), good=score>=0.8;
+    if (good) pron.ok++; markActivity();
+    finish(`<p>Bạn nói: <strong>${esc(heard[0])}</strong></p><p class="feedback ${good?'correct':'incorrect'}">${good?'Rất tốt!':score>=0.5?'Gần đúng, thử lại nhé.':'Chưa đúng, hãy nghe lại và thử lần nữa.'} (${pct}%)</p><button type="button" class="secondary" data-pron="mic">Thử lại</button> <button type="button" data-pron="next">${pron.i+1===pron.items.length?'Xem kết quả':'Mục tiếp theo'}</button>`);
+  };
+  r.onerror=ev=>{ handled=true; finish(`<p class="feedback incorrect">${ev.error==='not-allowed'||ev.error==='service-not-allowed'?'Hãy cho phép trình duyệt dùng micro.':ev.error==='no-speech'?'Không nghe thấy giọng nói, thử lại nhé.':'Không nhận diện được: '+esc(ev.error)}</p><button type="button" data-pron="mic">Thử lại</button>`); };
+  r.onend=()=>{ if (!handled) finish('<p class="feedback incorrect">Không nghe thấy giọng nói, thử lại nhé.</p><button type="button" data-pron="mic">Thử lại</button>'); };
+  try { r.start(); } catch { finish('<p class="feedback incorrect">Không thể bật micro.</p>'); }
 }
 function showQuestion(){if(current>=questions.length){$('#quiz-play').innerHTML=`<h3>Hoàn thành! 🎉</h3><p>Bạn trả lời đúng/nhớ được ${score}/${questions.length} câu.</p><p>Chọn lại cài đặt và bắt đầu để luyện thêm.</p>`;return;} const q=questions[current], labels={japanese:'Tiếng Nhật',romaji:'Romaji',meaning:'Tiếng Việt'}; if(q.format==='typing')return showTyping(q); if(q.format==='flashcard')return showFlash(q); $('#quiz-play').innerHTML=`<p>Câu ${current+1}/${questions.length} · ${labels[q.from]} → ${labels[q.to]}</p><h2>${esc(q.word[q.from])}</h2><button class="secondary" id="quiz-speak">🔊 Phát âm</button><div>${q.choices.map((x,i)=>`<button class="choice" data-choice="${i}">${esc(x)}</button>`).join('')}</div><div id="answer"></div>`; $('#quiz-speak').onclick=()=>speak(q.word.japanese); $('#quiz-play').querySelectorAll('[data-choice]').forEach(b=>b.onclick=()=>{ const correct=q.choices[Number(b.dataset.choice)]===q.word[q.to]; if(correct)score++; record(q.word,correct); $('#quiz-play').querySelectorAll('[data-choice]').forEach(x=>{ x.disabled=true; if(q.choices[Number(x.dataset.choice)]===q.word[q.to]) x.classList.add('correct'); else if(x===b) x.classList.add('incorrect'); }); $('#answer').innerHTML=`<p class="feedback ${correct?'correct':'incorrect'}">${correct?'Chính xác!':'Chưa đúng. Đáp án: '+esc(q.word[q.to])}</p><button id="next">${current+1===questions.length?'Xem kết quả':'Câu tiếp theo'}</button>`; $('#next').onclick=()=>{current++;showQuestion();}; }); }
 

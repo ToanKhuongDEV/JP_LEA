@@ -1,0 +1,405 @@
+{
+ "version": 1,
+ "sentences": [
+  {
+   "id": "s01",
+   "tokens": [
+    "わたし",
+    "は",
+    "がくせい",
+    "です"
+   ],
+   "ja": "私は学生です",
+   "romaji": "watashi wa gakusei desu",
+   "vi": "Tôi là học sinh.",
+   "kana": "わたしはがくせいです"
+  },
+  {
+   "id": "s02",
+   "tokens": [
+    "これ",
+    "は",
+    "ほん",
+    "です"
+   ],
+   "ja": "これは本です",
+   "romaji": "kore wa hon desu",
+   "vi": "Đây là quyển sách.",
+   "kana": "これはほんです"
+  },
+  {
+   "id": "s03",
+   "tokens": [
+    "それ",
+    "は",
+    "わたし",
+    "の",
+    "かさ",
+    "です"
+   ],
+   "ja": "それは私の傘です",
+   "romaji": "sore wa watashi no kasa desu",
+   "vi": "Đó là cái ô của tôi.",
+   "kana": "それはわたしのかさです"
+  },
+  {
+   "id": "s04",
+   "tokens": [
+    "あれ",
+    "は",
+    "なん",
+    "ですか"
+   ],
+   "ja": "あれは何ですか",
+   "romaji": "are wa nan desu ka",
+   "vi": "Kia là cái gì?",
+   "kana": "あれはなんですか"
+  },
+  {
+   "id": "s05",
+   "tokens": [
+    "わたし",
+    "は",
+    "みず",
+    "を",
+    "のみます"
+   ],
+   "ja": "私は水を飲みます",
+   "romaji": "watashi wa mizu o nomimasu",
+   "vi": "Tôi uống nước.",
+   "kana": "わたしはみずをのみます"
+  },
+  {
+   "id": "s06",
+   "tokens": [
+    "わたし",
+    "は",
+    "ごはん",
+    "を",
+    "たべます"
+   ],
+   "ja": "私はご飯を食べます",
+   "romaji": "watashi wa gohan o tabemasu",
+   "vi": "Tôi ăn cơm.",
+   "kana": "わたしはごはんをたべます"
+  },
+  {
+   "id": "s07",
+   "tokens": [
+    "たなか",
+    "さん",
+    "は",
+    "せんせい",
+    "です"
+   ],
+   "ja": "田中さんは先生です",
+   "romaji": "tanaka san wa sensei desu",
+   "vi": "Anh Tanaka là giáo viên.",
+   "kana": "たなかさんはせんせいです"
+  },
+  {
+   "id": "s08",
+   "tokens": [
+    "わたし",
+    "は",
+    "にほんご",
+    "を",
+    "べんきょうします"
+   ],
+   "ja": "私は日本語を勉強します",
+   "romaji": "watashi wa nihongo o benkyou shimasu",
+   "vi": "Tôi học tiếng Nhật.",
+   "kana": "わたしはにほんごをべんきょうします"
+  },
+  {
+   "id": "s09",
+   "tokens": [
+    "きょう",
+    "は",
+    "あつい",
+    "です"
+   ],
+   "ja": "今日は暑いです",
+   "romaji": "kyou wa atsui desu",
+   "vi": "Hôm nay trời nóng.",
+   "kana": "きょうはあついです"
+  },
+  {
+   "id": "s10",
+   "tokens": [
+    "この",
+    "りんご",
+    "は",
+    "おいしい",
+    "です"
+   ],
+   "ja": "このりんごはおいしいです",
+   "romaji": "kono ringo wa oishii desu",
+   "vi": "Quả táo này ngon.",
+   "kana": "このりんごはおいしいです"
+  },
+  {
+   "id": "s11",
+   "tokens": [
+    "わたし",
+    "は",
+    "がっこう",
+    "へ",
+    "いきます"
+   ],
+   "ja": "私は学校へ行きます",
+   "romaji": "watashi wa gakkou e ikimasu",
+   "vi": "Tôi đi đến trường.",
+   "kana": "わたしはがっこうへいきます"
+  },
+  {
+   "id": "s12",
+   "tokens": [
+    "わたし",
+    "は",
+    "うち",
+    "に",
+    "かえります"
+   ],
+   "ja": "私は家に帰ります",
+   "romaji": "watashi wa uchi ni kaerimasu",
+   "vi": "Tôi về nhà.",
+   "kana": "わたしはうちにかえります"
+  },
+  {
+   "id": "s13",
+   "tokens": [
+    "あした",
+    "ともだち",
+    "に",
+    "あいます"
+   ],
+   "ja": "明日友達に会います",
+   "romaji": "ashita tomodachi ni aimasu",
+   "vi": "Ngày mai tôi gặp bạn.",
+   "kana": "あしたともだちにあいます"
+  },
+  {
+   "id": "s14",
+   "tokens": [
+    "わたし",
+    "は",
+    "ねこ",
+    "が",
+    "すきです"
+   ],
+   "ja": "私は猫が好きです",
+   "romaji": "watashi wa neko ga suki desu",
+   "vi": "Tôi thích mèo.",
+   "kana": "わたしはねこがすきです"
+  },
+  {
+   "id": "s15",
+   "tokens": [
+    "いぬ",
+    "は",
+    "にわ",
+    "に",
+    "います"
+   ],
+   "ja": "犬は庭にいます",
+   "romaji": "inu wa niwa ni imasu",
+   "vi": "Con chó ở trong vườn.",
+   "kana": "いぬはにわにいます"
+  },
+  {
+   "id": "s16",
+   "tokens": [
+    "つくえ",
+    "の",
+    "うえ",
+    "に",
+    "ほん",
+    "が",
+    "あります"
+   ],
+   "ja": "机の上に本があります",
+   "romaji": "tsukue no ue ni hon ga arimasu",
+   "vi": "Có quyển sách ở trên bàn.",
+   "kana": "つくえのうえにほんがあります"
+  },
+  {
+   "id": "s17",
+   "tokens": [
+    "トイレ",
+    "は",
+    "どこ",
+    "ですか"
+   ],
+   "ja": "トイレはどこですか",
+   "romaji": "toire wa doko desu ka",
+   "vi": "Nhà vệ sinh ở đâu?",
+   "kana": "トイレはどこですか"
+  },
+  {
+   "id": "s18",
+   "tokens": [
+    "これ",
+    "は",
+    "いくら",
+    "ですか"
+   ],
+   "ja": "これはいくらですか",
+   "romaji": "kore wa ikura desu ka",
+   "vi": "Cái này giá bao nhiêu?",
+   "kana": "これはいくらですか"
+  },
+  {
+   "id": "s19",
+   "tokens": [
+    "おなまえ",
+    "は",
+    "なん",
+    "ですか"
+   ],
+   "ja": "お名前は何ですか",
+   "romaji": "onamae wa nan desu ka",
+   "vi": "Tên bạn là gì?",
+   "kana": "おなまえはなんですか"
+  },
+  {
+   "id": "s20",
+   "tokens": [
+    "わたし",
+    "は",
+    "まいあさ",
+    "コーヒー",
+    "を",
+    "のみます"
+   ],
+   "ja": "私は毎朝コーヒーを飲みます",
+   "romaji": "watashi wa maiasa koohii o nomimasu",
+   "vi": "Mỗi sáng tôi uống cà phê.",
+   "kana": "わたしはまいあさコーヒーをのみます"
+  },
+  {
+   "id": "s21",
+   "tokens": [
+    "わたし",
+    "は",
+    "テレビ",
+    "を",
+    "みます"
+   ],
+   "ja": "私はテレビを見ます",
+   "romaji": "watashi wa terebi o mimasu",
+   "vi": "Tôi xem ti vi.",
+   "kana": "わたしはテレビをみます"
+  },
+  {
+   "id": "s22",
+   "tokens": [
+    "かれ",
+    "は",
+    "にほんじん",
+    "では",
+    "ありません"
+   ],
+   "ja": "彼は日本人ではありません",
+   "romaji": "kare wa nihonjin dewa arimasen",
+   "vi": "Anh ấy không phải người Nhật.",
+   "kana": "かれはにほんじんではありません"
+  },
+  {
+   "id": "s23",
+   "tokens": [
+    "わたし",
+    "は",
+    "パン",
+    "を",
+    "たべません"
+   ],
+   "ja": "私はパンを食べません",
+   "romaji": "watashi wa pan o tabemasen",
+   "vi": "Tôi không ăn bánh mì.",
+   "kana": "わたしはパンをたべません"
+  },
+  {
+   "id": "s24",
+   "tokens": [
+    "ありがとう",
+    "ございます"
+   ],
+   "ja": "ありがとうございます",
+   "romaji": "arigatou gozaimasu",
+   "vi": "Cảm ơn bạn.",
+   "kana": "ありがとうございます"
+  },
+  {
+   "id": "s25",
+   "tokens": [
+    "おはよう",
+    "ございます"
+   ],
+   "ja": "おはようございます",
+   "romaji": "ohayou gozaimasu",
+   "vi": "Chào buổi sáng.",
+   "kana": "おはようございます"
+  },
+  {
+   "id": "s26",
+   "tokens": [
+    "わたし",
+    "は",
+    "ベトナム",
+    "じん",
+    "です"
+   ],
+   "ja": "私はベトナム人です",
+   "romaji": "watashi wa betonamu jin desu",
+   "vi": "Tôi là người Việt Nam.",
+   "kana": "わたしはベトナムじんです"
+  },
+  {
+   "id": "s27",
+   "tokens": [
+    "たなか",
+    "さん",
+    "は",
+    "にほん",
+    "から",
+    "きました"
+   ],
+   "ja": "田中さんは日本から来ました",
+   "romaji": "tanaka san wa nihon kara kimashita",
+   "vi": "Anh Tanaka đến từ Nhật Bản.",
+   "kana": "たなかさんはにほんからきました"
+  },
+  {
+   "id": "s28",
+   "tokens": [
+    "わたし",
+    "は",
+    "バス",
+    "で",
+    "がっこう",
+    "へ",
+    "いきます"
+   ],
+   "ja": "私はバスで学校へ行きます",
+   "romaji": "watashi wa basu de gakkou e ikimasu",
+   "vi": "Tôi đi đến trường bằng xe buýt.",
+   "kana": "わたしはバスでがっこうへいきます"
+  },
+  {
+   "id": "s29",
+   "tokens": [
+    "これ",
+    "は",
+    "わたし",
+    "の",
+    "ともだち",
+    "です"
+   ],
+   "ja": "これは私の友達です",
+   "romaji": "kore wa watashi no tomodachi desu",
+   "vi": "Đây là bạn của tôi.",
+   "kana": "これはわたしのともだちです"
+  }
+ ]
+}
