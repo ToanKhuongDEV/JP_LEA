@@ -14,3 +14,10 @@ header{align-items:stretch;gap:32px;padding:16px 0 30px}.brand{display:flex;alig
 nav{position:sticky;top:0;z-index:5;overflow-x:auto;white-space:nowrap;scrollbar-width:thin;background:#f3f7f7}nav button{flex:none}button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #7fb8b2;outline-offset:2px}@media(max-width:600px){nav button{padding:12px 12px;font-size:.92rem}.chip{padding:9px 12px}#pron-play h2,#quiz-play h2{font-size:1.9rem}}
 
 .pager{display:flex;align-items:center;justify-content:center;gap:14px;padding-top:18px;color:#627789;font-size:.92rem}
+.badge{display:inline-block;min-width:1.4em;padding:1px 7px;margin-left:4px;border-radius:999px;background:#e0715a;color:#fff;font-size:.75rem;line-height:1.5;text-align:center}
+.due-box{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:#eef5f4;border-radius:12px;padding:10px 14px;margin:8px 0 16px}.due-box span{color:#285957;font-weight:650}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);max-width:min(92vw,520px);background:#183043;color:#fff;padding:12px 18px;border-radius:12px;box-shadow:0 8px 30px #0004;z-index:20}
+.kbd{display:inline-block;min-width:1.5em;margin-right:8px;padding:0 6px;border-radius:5px;background:#d9ebe7;color:#285957;font-size:.8rem;text-align:center}
+.chip[draggable=true]{cursor:grab}.drop-over{outline:2px dashed #216b69;outline-offset:3px}
+.near{color:#a0612b;font-weight:600}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #e0715a;outline-offset:2px}

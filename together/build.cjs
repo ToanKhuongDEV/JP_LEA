@@ -14,7 +14,9 @@ if (bridgeStart < 0 || bridgeEnd < 0) throw Error('Could not locate bridge');
 app = app.slice(0, bridgeStart) + `const sharedCall = (method, ...args) => new Promise((resolve, reject) =>
   google.script.run.withSuccessHandler(resolve).withFailureHandler(reject)[method](...args));
 ` + app.slice(bridgeEnd);
-html = html.replace('<link rel="stylesheet" href="style.css?v=3">', '<style>' + style + '</style>');
+html = html.replace(/<link rel="stylesheet" href="style\.css[^"]*">/, () => '<style>' + style + '</style>');
+html = html.replace(/<link rel="(manifest|icon)" href="[^"]*">/g, '');
+app = app.replace(/^if \(typeof navigator[^\n]*serviceWorker[^\n]*\n/m, '');
 html = html.replace('<script src="https://accounts.google.com/gsi/client" async defer></script>', '');
 html = html.replace(/<script type="module" src="app\.js[^"]*"><\/script>/, '');
 html = html.replace('<div class="account-main">', '<div class="account-main"><style>#remember-label,#login,#restore,#together-link {display:none}</style>');

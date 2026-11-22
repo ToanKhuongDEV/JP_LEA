@@ -35,13 +35,16 @@ jobs:
           node srs.test.cjs
           node speech.test.cjs
           node pager.test.cjs
+          node improvements.test.cjs
       - name: Prepare site
         env:
           GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
           TOGETHER_URL: ${{ vars.TOGETHER_URL || 'https://script.google.com/macros/s/AKfycbzYmYBe1meldQsVQExF0BB6El5Mkje1Ubs5RRUFWAs9ATs5_-rJR47iaxxKIYY99OWqNw/exec' }}
         run: |
           mkdir public
-          cp index.html privacy.html terms.html app.js style.css sentences.json public/
+          cp index.html privacy.html terms.html app.js style.css sentences.json manifest.json sw.js public/
+          cp -r icons public/icons
+          sed -i "s/__BUILD__/${GITHUB_SHA::10}/g" public/index.html public/sw.js
           node -e "require('fs').writeFileSync('public/config.js', 'export const CLIENT_ID = ' + JSON.stringify(process.env.GOOGLE_CLIENT_ID || '') + ';\nexport const TOGETHER_URL = ' + JSON.stringify(process.env.TOGETHER_URL || '') + ';\n')"
           if [ -z "$GOOGLE_CLIENT_ID" ]; then echo "::warning::Set the GOOGLE_CLIENT_ID repository variable to enable Google login."; fi
       - uses: actions/configure-pages@v5

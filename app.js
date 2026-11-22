@@ -24,6 +24,15 @@ function mergeById(baseItems, local, remote) {
   }
   return out;
 }
+function mergeProgress(a, b) {
+  if (!a || !b) return a || b;
+  const words = {...b.words}, days = {...b.days};
+  for (const [k, p] of Object.entries(a.words || {})) { const q = words[k]; if (!q || p.correct + p.wrong >= q.correct + q.wrong) words[k] = p; }
+  for (const [k, n] of Object.entries(a.days || {})) days[k] = Math.max(n, days[k] || 0);
+  const sentences = {...(b.sentences || {})};
+  for (const [k, r] of Object.entries(a.sentences || {})) sentences[k] = {...sentences[k], ...r};
+  return {...b, words, days, sentences};
+}
 function mergeData(baseData, local, remote) {
   const remap = new Map(), seen = new Map(), groups = [];
   for (const g of mergeById(baseData.groups, local.groups, remote.groups)) {
@@ -32,11 +41,15 @@ function mergeData(baseData, local, remote) {
   }
   const ids = new Set(groups.map(g => g.id));
   const words = mergeById(baseData.words, local.words, remote.words).map(w => ({...w, groups:[...new Set(w.groups.map(g => remap.get(g) || g))].filter(g => ids.has(g))}));
-  return {...remote, groups, words};
+  const merged = {...remote, groups, words}, progress = mergeProgress(local.progress, remote.progress);
+  if (progress) merged.progress = progress;
+  return merged;
 }
 const empty = () => ({version:1, words:[], groups:[]});
 let base = empty(), data = empty(), token = '', fileId = '', remoteRevision = '', dirty = false, busy = false, editing = null, questions = [], current = 0, score = 0;
 const status = text => $('#status').textContent = text;
+let toastTimer = 0;
+function notify(text) { const el = $('#toast'); el.textContent = text; el.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.hidden = true; }, 5000); }
 const scope = 'https://www.googleapis.com/auth/drive.appdata';
 const rememberKey = 'jp-lea-remember';
 const sessionKey = 'jp-lea-session';
@@ -95,8 +108,8 @@ async function load() {
     fileId = found.files[0].id; remoteRevision = found.files[0].version;
     const incoming = await api(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`);
     if (incoming.version !== 1 || !Array.isArray(incoming.words) || !Array.isArray(incoming.groups)) throw new Error('Dữ liệu Drive không đúng định dạng.');
-    data = incoming;
-  } else { fileId=''; remoteRevision=''; data=empty(); }
+    data = incoming; base = clone(data);
+  } else { fileId=''; remoteRevision=''; data=empty(); base=empty(); }
 }
 async function save() {
   dirty = true; status('Chưa đồng bộ');
@@ -120,17 +133,22 @@ async function save() {
         }
       } else if (fileId) {
         const meta = await api(`https://www.googleapis.com/drive/v3/files/${fileId}?fields=version`);
-        if (meta.version !== remoteRevision) throw new Error('Dữ liệu trên Drive đã thay đổi ở thiết bị khác. Hãy tải lại trang trước khi sửa tiếp.');
-        const saved = await api(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media&fields=id,version`, {method:'PATCH',headers:{'Content-Type':'application/json'},body:snapshot});
-        remoteRevision = saved.version;
+        let body = snapshot;
+        if (meta.version !== remoteRevision) {
+          const remote = await api(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`);
+          if (remote.version !== 1 || !Array.isArray(remote.words) || !Array.isArray(remote.groups)) throw new Error('Dữ liệu Drive không đúng định dạng.');
+          data = mergeData(base, data, remote); remoteRevision = meta.version; merged = true; render(); body = JSON.stringify(data);
+        }
+        const saved = await api(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media&fields=id,version`, {method:'PATCH',headers:{'Content-Type':'application/json'},body});
+        remoteRevision = saved.version; base = JSON.parse(body);
       } else {
         const boundary = 'jpstudyboundary';
         const body = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({name:'japanese-study.json',parents:['appDataFolder']})}\r\n--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${snapshot}\r\n--${boundary}--`;
         const saved = await api('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,version', {method:'POST',headers:{'Content-Type':`multipart/related; boundary=${boundary}`},body});
-        fileId=saved.id; remoteRevision=saved.version;
+        fileId=saved.id; remoteRevision=saved.version; base=JSON.parse(snapshot);
       }
     }
-    status(sharedMode ? (merged ? 'Đã lưu và hợp nhất với thay đổi của người khác' : 'Đã lưu dữ liệu chung') : 'Đã lưu trên Google Drive');
+    status(merged ? (sharedMode ? 'Đã lưu và hợp nhất với thay đổi của người khác' : 'Đã lưu và hợp nhất với thay đổi từ thiết bị khác') : sharedMode ? 'Đã lưu dữ liệu chung' : 'Đã lưu trên Google Drive');
   } catch(e) { dirty=true; status(`Chưa lưu: ${e.message}`); }
   finally { busy=false; $('#retry').hidden=!dirty; }
 }
@@ -155,7 +173,7 @@ window.addEventListener('beforeunload', e => { if (dirty || busy || saveTimer) {
 $('#login').onclick = () => {
   if (!CLIENT_ID) { $('#setup').hidden=false; return; }
   if (!window.google?.accounts?.oauth2) { status('Google chưa tải xong, hãy thử lại.'); return; }
-  if (dirty || busy) { alert('Có thay đổi chưa lưu. Hãy tải bản sao dữ liệu trước khi tải lại trang hoặc đổi tài khoản.'); return; }
+  if (dirty || busy) { notify('Có thay đổi chưa lưu. Hãy tải bản sao dữ liệu trước khi tải lại trang hoặc đổi tài khoản.'); return; }
   google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope,callback:async response => {
     if (response.error) { status('Không thể đăng nhập Google.'); return; }
     localStorage.removeItem(sessionKey);
@@ -176,9 +194,9 @@ $('#restore-file').onchange=async e=>{
   try {
     const incoming=JSON.parse(await file.text());
     if(incoming.version!==1 || !Array.isArray(incoming.words) || !Array.isArray(incoming.groups) || !incoming.groups.every(g=>typeof g.id==='string'&&typeof g.name==='string') || !incoming.words.every(w=>typeof w.id==='string'&&typeof w.japanese==='string'&&typeof w.romaji==='string'&&typeof w.meaning==='string'&&Array.isArray(w.groups)&&w.groups.every(g=>typeof g==='string'))) throw new Error('File không đúng định dạng.');
-    if(!confirm('Nhập bản sao sẽ thay thế danh sách hiện tại trên Drive. Tiếp tục?'))return;
-    data=incoming; render(); save();
-  } catch(err) { alert(`Không thể nhập: ${err.message}`); }
+    if(!confirm('Nhập bản sao sẽ thay thế danh sách từ hiện tại trên Drive'+(incoming.progress?' và cả tiến độ học':' (tiến độ học hiện tại được giữ lại)')+'. Tiếp tục?'))return;
+    const oldProgress=data.progress; data=incoming; if(!validStore(incoming.progress)&&validStore(oldProgress)) data.progress=oldProgress; render(); save();
+  } catch(err) { notify(`Không thể nhập: ${err.message}`); }
   finally { e.target.value=''; }
 };
 $('#import-words').onclick=()=>$('#import-words-file').click();
@@ -195,19 +213,21 @@ $('#import-words-file').onchange=async e=>{
     }
     let added=0;
     for(const w of incoming.words) {
-      if(words.some(x=>x.id===w.id)) continue;
+      if(words.some(x=>x.id===w.id||wordKey(x)===wordKey(w))) continue;
       words.push({...w, groups:[...new Set(w.groups.map(g=>groupIds.get(g)))]}); added++;
     }
     data={...data,groups,words}; render(); save();
-    alert(`Đã thêm ${added} từ; bỏ qua ${incoming.words.length-added} từ có ID trùng.`);
-  } catch(err) { alert(`Không thể nhập: ${err.message}`); }
+    notify(`Đã thêm ${added} từ; bỏ qua ${incoming.words.length-added} từ đã có (trùng ID hoặc trùng chữ + romaji).`);
+  } catch(err) { notify(`Không thể nhập: ${err.message}`); }
   finally { e.target.value=''; }
 };
+const wordKey=w=>String(w.japanese).normalize('NFC').replace(/\s/g,'')+'|'+String(w.romaji).toLowerCase().replace(/\s/g,'');
 function options(selected='') { return '<option value="">Tất cả nhóm</option>'+data.groups.map(g=>`<option value="${esc(g.id)}" ${g.id===selected?'selected':''}>${esc(g.name)}</option>`).join(''); }
 function render() {
   const filter=$('#filter-group').value, quiz=$('#quiz-group').value;
   $('#filter-group').innerHTML=options(filter); $('#quiz-group').innerHTML=options(quiz);
   renderWords();
+  updateDue();
   $('#group-list').innerHTML=data.groups.length ? data.groups.map(g=>`<div class="row"><div><strong>${esc(g.name)}</strong><p>${data.words.filter(w=>w.groups.includes(g.id)).length} từ</p></div><div class="row-actions"><button data-rename="${esc(g.id)}">Đổi tên</button><button data-delete-group="${esc(g.id)}">Xóa</button></div></div>`).join('') : '<p>Chưa có nhóm nào. Tạo một nhóm để bắt đầu.</p>';
 }
 const pageSize=20; let wordPage=1;
@@ -221,14 +241,14 @@ function renderWords() {
 }
 $('#word-pager').onclick=e=>{ const b=e.target.closest('button'); if(!b||b.disabled)return; wordPage+=b.dataset.page==='next'?1:-1; renderWords(); $('#word-list').scrollIntoView?.({block:'start'}); };
 function pickVoice() { const ja=speechSynthesis.getVoices().filter(v=>v.lang.toLowerCase().replace('_','-').startsWith('ja')); return ja.find(v=>/google/i.test(v.name))||ja[0]; }
-function speak(text, rate=0.9) { if (!('speechSynthesis' in window)) return alert('Trình duyệt không hỗ trợ phát âm.'); const voice=pickVoice(); if (!voice) return alert('Thiết bị chưa có giọng đọc tiếng Nhật.'); const u=new SpeechSynthesisUtterance(text); u.lang='ja-JP'; u.voice=voice; u.rate=rate; speechSynthesis.cancel(); speechSynthesis.speak(u); }
-document.querySelector('nav').onclick=e=>{ const b=e.target.closest('[data-tab]'); if(!b)return; document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b)); document.querySelectorAll('.panel').forEach(x=>x.hidden=x.id!==b.dataset.tab); if(b.dataset.tab==='stats')renderStats(); if(b.dataset.tab==='sentences'||b.dataset.tab==='pron')loadSentences().then(updateLevelUI).catch(()=>{}); };
+function speak(text, rate=0.9) { if (!('speechSynthesis' in window)) return notify('Trình duyệt không hỗ trợ phát âm.'); const voice=pickVoice(); if (!voice) return notify('Thiết bị chưa có giọng đọc tiếng Nhật.'); const u=new SpeechSynthesisUtterance(text); u.lang='ja-JP'; u.voice=voice; u.rate=rate; speechSynthesis.cancel(); speechSynthesis.speak(u); }
+document.querySelector('nav').onclick=e=>{ const b=e.target.closest('[data-tab]'); if(!b)return; document.querySelectorAll('nav button').forEach(x=>{x.classList.toggle('active',x===b); x.setAttribute?.('aria-selected',String(x===b));}); document.querySelectorAll('.panel').forEach(x=>x.hidden=x.id!==b.dataset.tab); if(b.dataset.tab==='stats')renderStats(); if(b.dataset.tab==='quiz')updateDue(); if(b.dataset.tab==='sentences'||b.dataset.tab==='pron')loadSentences().then(updateLevelUI).catch(()=>{}); };
 $('#search').oninput=()=>{ wordPage=1; renderWords(); }; $('#filter-group').onchange=()=>{ wordPage=1; renderWords(); };
-$('#group-form').onsubmit=e=>{ e.preventDefault(); const name=e.target.elements.name.value.trim(); if(!name)return; if(data.groups.some(g=>g.name.toLowerCase()===name.toLowerCase()))return alert('Tên nhóm đã tồn tại.'); data.groups.push({id:id(),name}); e.target.reset(); render(); save(); };
-$('#group-list').onclick=e=>{ const rename=e.target.dataset.rename, del=e.target.dataset.deleteGroup, g=data.groups.find(x=>x.id===(rename||del)); if(!g)return; if(rename){ const name=prompt('Tên nhóm:',g.name)?.trim(); if(!name)return; if(data.groups.some(x=>x.id!==g.id&&x.name.toLowerCase()===name.toLowerCase()))return alert('Tên nhóm đã tồn tại.'); g.name=name; } else { if(!confirm('Xóa nhóm này? Các từ vẫn được giữ lại.'))return; data.groups=data.groups.filter(x=>x.id!==del); data.words.forEach(w=>w.groups=w.groups.filter(x=>x!==del)); } render(); save(); };
+$('#group-form').onsubmit=e=>{ e.preventDefault(); const name=e.target.elements.name.value.trim(); if(!name)return; if(data.groups.some(g=>g.name.toLowerCase()===name.toLowerCase()))return notify('Tên nhóm đã tồn tại.'); data.groups.push({id:id(),name}); e.target.reset(); render(); save(); };
+$('#group-list').onclick=e=>{ const rename=e.target.dataset.rename, del=e.target.dataset.deleteGroup, g=data.groups.find(x=>x.id===(rename||del)); if(!g)return; if(rename){ const name=prompt('Tên nhóm:',g.name)?.trim(); if(!name)return; if(data.groups.some(x=>x.id!==g.id&&x.name.toLowerCase()===name.toLowerCase()))return notify('Tên nhóm đã tồn tại.'); g.name=name; } else { if(!confirm('Xóa nhóm này? Các từ vẫn được giữ lại.'))return; data.groups=data.groups.filter(x=>x.id!==del); data.words.forEach(w=>w.groups=w.groups.filter(x=>x!==del)); } render(); save(); };
 function openWord(w) { editing=w?.id||null; const f=$('#word-form'); f.reset(); f.elements.japanese.value=w?.japanese||''; f.elements.romaji.value=w?.romaji||''; f.elements.meaning.value=w?.meaning||''; $('#dialog-title').textContent=w?'Sửa từ':'Thêm từ mới'; $('#word-groups').innerHTML=data.groups.length?data.groups.map(g=>`<label><input type="checkbox" name="group" value="${esc(g.id)}" ${w?.groups.includes(g.id)?'checked':''}>${esc(g.name)}</label>`).join(''):'Chưa có nhóm. Bạn có thể tạo nhóm trước.'; $('#word-dialog').showModal(); }
 $('#add-word').onclick=()=>openWord(); $('#cancel').onclick=()=>$('#word-dialog').close();
-$('#word-form').onsubmit=e=>{ e.preventDefault(); const f=e.target, japanese=f.elements.japanese.value.trim(), romaji=f.elements.romaji.value.trim(), meaning=f.elements.meaning.value.trim(); if(!japanese||!romaji)return; const word={id:editing||id(),japanese,romaji,meaning,groups:[...f.querySelectorAll('[name=group]:checked')].map(x=>x.value)}; if(editing) data.words[data.words.findIndex(w=>w.id===editing)]=word; else data.words.push(word); $('#word-dialog').close(); render(); save(); };
+$('#word-form').onsubmit=e=>{ e.preventDefault(); const f=e.target, japanese=f.elements.japanese.value.trim(), romaji=f.elements.romaji.value.trim(), meaning=f.elements.meaning.value.trim(); if(!japanese||!romaji)return; if(data.words.some(w=>w.id!==editing&&wordKey(w)===wordKey({japanese,romaji}))) return notify('Từ này đã có trong danh sách.'); const word={id:editing||id(),japanese,romaji,meaning,groups:[...f.querySelectorAll('[name=group]:checked')].map(x=>x.value)}; if(editing) data.words[data.words.findIndex(w=>w.id===editing)]=word; else data.words.push(word); $('#word-dialog').close(); render(); save(); };
 $('#word-list').onclick=e=>{ const b=e.target.closest('button'); if(!b)return; const key=b.dataset.speak||b.dataset.edit||b.dataset.delete, w=data.words.find(x=>x.id===key); if(!w)return; if(b.dataset.speak)speak(w.japanese); else if(b.dataset.edit)openWord(w); else if(confirm(`Xóa từ ${w.japanese}?`)){data.words=data.words.filter(x=>x.id!==key);render();save();} };
 const modes={rj:['romaji','japanese'],jr:['japanese','romaji'],jv:['japanese','meaning'],vj:['meaning','japanese']};
 function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a; }
@@ -248,13 +268,32 @@ function persistProgress() {
   if (sharedMode) { try { localStorage.setItem(progressKey,JSON.stringify(sharedProgress)); } catch {} return; }
   status('Chưa đồng bộ'); clearTimeout(saveTimer); saveTimer=setTimeout(()=>{ saveTimer=0; save(); },3000);
 }
+let lastRec=null;
+function undoRecord() {
+  if (!lastRec) return; const s=store();
+  if (lastRec.old) s.words[lastRec.id]=lastRec.old; else delete s.words[lastRec.id];
+  s.days[lastRec.d]=Math.max(0,(s.days[lastRec.d]||1)-1); lastRec=null;
+}
+function dueCounts() { const s=store(), d=today(); let due=0, fresh=0; for (const w of data.words) { const p=s.words[w.id]; if (!p) fresh++; else if (p.due<=d) due++; } return {due,fresh}; }
+function updateDue() {
+  const {due,fresh}=dueCounts(), badge=$('#due-badge'), box=$('#due-box');
+  badge.hidden=!due; badge.textContent=String(due); box.hidden=!(due+fresh);
+  $('#due-text').textContent=`Hôm nay: ${due} từ đến hạn ôn, ${fresh} từ mới chưa học.`;
+}
+$('#review-now').onclick=()=>{
+  const f=$('#quiz-form'), {due,fresh}=dueCounts(), e=f.elements;
+  e.scope.value='due'; e.group.value=''; e.format.value='flashcard'; e.mode.value='jv'; e.count.value=String(Math.max(1,Math.min(20,due+fresh)));
+  f.requestSubmit ? f.requestSubmit() : f.onsubmit({preventDefault(){},target:f});
+};
 function record(word, correct) {
-  const s=store(), p=s.words[word.id]||{box:0,due:0,correct:0,wrong:0}, d=today();
+  const s=store(), old=s.words[word.id], p=old?{...old}:{box:0,due:0,correct:0,wrong:0}, d=today();
+  lastRec={id:word.id,old:old?{...old}:null,d};
   if (correct) { p.correct++; p.box=Math.min(p.box+1,intervals.length-1); p.due=d+intervals[p.box]; }
   else { p.wrong++; p.box=0; p.due=d; }
-  s.words[word.id]=p; s.days[d]=(s.days[d]||0)+1; persistProgress();
+  s.words[word.id]=p; s.days[d]=(s.days[d]||0)+1; persistProgress(); updateDue();
 }
 const fold=(text,to)=>to==='japanese' ? String(text).normalize('NFC').replace(/\s/g,'') : String(text).normalize('NFD').replace(/\p{M}/gu,'').replace(/đ/gi,'d').toLowerCase().replace(/[\s'’\-.,!?]/g,'');
+const acceptable=(text,to)=>{ const t=String(text), parts=to==='meaning'?t.split(/[,;\/、]/):[]; return [...new Set([t,...parts].flatMap(x=>[x,x.replace(/[(（].*?[)）]/g,'')]).map(x=>fold(x,to)).filter(Boolean))]; };
 function buildQuestions(f) {
   const group=f.elements.group.value, mode=f.elements.mode.value, count=Number(f.elements.count.value), format=f.elements.format.value, scope=f.elements.scope.value, d=today(), s=store();
   const groupPool=data.words.filter(w=>!group||w.groups.includes(group));
@@ -276,22 +315,26 @@ function buildQuestions(f) {
   return candidates.slice(0,count);
 }
 $('#quiz-form').onsubmit=e=>{ e.preventDefault(); questions=buildQuestions(e.target); current=0; score=0; if(!questions.length){$('#quiz-play').innerHTML='<p>Không có câu hỏi phù hợp. Hãy đổi nguồn từ, nhóm hoặc hình thức, hoặc thêm từ và nghĩa (trắc nghiệm cần ít nhất 2 đáp án khác nhau).</p>';return;} showQuestion(); };
-function quizHeader(q) { return `<p>Câu ${current+1}/${questions.length} · ${quizLabels[q.from]} → ${quizLabels[q.to]}</p><h2>${esc(q.word[q.from])}</h2><button class="secondary" id="quiz-speak" type="button">🔊 Phát âm</button>`; }
-function answered(q, correct) {
-  record(q.word, correct); if (correct) score++;
-  $('#answer').innerHTML=`<p class="feedback ${correct?'correct':'incorrect'}">${correct?'Chính xác!':'Chưa đúng. Đáp án: '+esc(q.word[q.to])}</p><button id="next">${current+1===questions.length?'Xem kết quả':'Câu tiếp theo'}</button>`;
+function quizHeader(q) { return `<p>Câu ${current+1}/${questions.length} · ${quizLabels[q.from]} → ${quizLabels[q.to]}</p><h2>${esc(q.word[q.from])}</h2><button class="secondary" id="quiz-speak" type="button" ${q.to==='japanese'?'hidden':''}>🔊 Phát âm</button>`; }
+function showAnswer(q, correct, near) {
+  const speak=$('#quiz-speak'); if (speak) speak.hidden=false;
+  const extra=correct?'':(near?'<p class="near">Gần đúng, có thể bạn chỉ gõ sai chính tả.</p>':'')+'<button type="button" class="secondary" id="override">Tôi đã đúng</button> ';
+  $('#answer').innerHTML=`<p class="feedback ${correct?'correct':'incorrect'}">${correct?'Chính xác!':'Chưa đúng. Đáp án: '+esc(q.word[q.to])}</p>${extra}<button id="next">${current+1===questions.length?'Xem kết quả':'Câu tiếp theo'}</button>`;
   $('#next').onclick=()=>{ current++; showQuestion(); }; $('#next').focus();
+  const ov=$('#override'); if (ov) ov.onclick=()=>{ undoRecord(); record(q.word,true); score++; showAnswer(q,true,false); };
 }
+function answered(q, correct, near) { record(q.word, correct); if (correct) score++; showAnswer(q, correct, near); }
 function showTyping(q) {
   $('#quiz-play').innerHTML=quizHeader(q)+'<form id="typing-form" autocomplete="off"><input name="answer" aria-label="Câu trả lời" placeholder="Gõ đáp án" required><button>Kiểm tra</button></form><div id="answer"></div>';
   $('#quiz-speak').onclick=()=>speak(q.word.japanese);
   const form=$('#typing-form'); form.elements.answer.focus();
-  form.onsubmit=ev=>{ ev.preventDefault(); const input=form.elements.answer; input.disabled=true; form.querySelector('button').disabled=true; answered(q, fold(input.value,q.to)===fold(q.word[q.to],q.to)); };
+  form.onsubmit=ev=>{ ev.preventDefault(); const input=form.elements.answer; input.disabled=true; form.querySelector('button').disabled=true; const typed=fold(input.value,q.to), accepted=acceptable(q.word[q.to],q.to), ok=accepted.includes(typed); answered(q, ok, !ok&&accepted.some(a=>similarity(typed,a)>=0.75)); };
 }
 function showFlash(q) {
   $('#quiz-play').innerHTML=quizHeader(q)+'<div id="answer"><button id="flip">Lật thẻ</button></div>';
   $('#quiz-speak').onclick=()=>speak(q.word.japanese);
   $('#flip').onclick=()=>{
+    $('#quiz-speak').hidden=false;
     $('#answer').innerHTML=`<h2 class="flash-back">${esc(q.word[q.to])}</h2><div class="actions"><button class="secondary" id="forgot">Chưa nhớ</button><button id="knew">Đã nhớ</button></div>`;
     const rate=ok=>{ record(q.word,ok); if (ok) score++; current++; showQuestion(); };
     $('#forgot').onclick=()=>rate(false); $('#knew').onclick=()=>rate(true);
@@ -360,23 +403,45 @@ function showSentence() {
 }
 function drawSentence() {
   const st=sState, text=i=>st.chips.find(c=>c.i===i).t, bank=st.chips.filter(c=>!st.chosen.includes(c.i));
-  const chip=(i,zone)=>`<button type="button" class="chip" data-chip="${i}" data-zone="${zone}" ${st.checked?'disabled':''}>${esc(text(i))}</button>`;
+  const chip=(i,zone)=>`<button type="button" class="chip" data-chip="${i}" data-zone="${zone}" ${st.checked?'disabled':'draggable="true"'}>${esc(text(i))}</button>`;
   const prompt=st.dir==='jv' ? `<h2>${esc(st.s.tokens.join(' '))}</h2><p>${esc(st.s.romaji)}</p><button type="button" class="secondary" data-say="1">🔊 Nghe</button> <button type="button" class="secondary" data-say="1" data-rate="0.6">🐢 Chậm</button>` : `<h2>${esc(st.s.vi)}</h2>`;
-  $('#sentence-play').innerHTML=`<p>Câu ${sIndex+1}/${sentenceSet.length} · Dịch sang tiếng ${st.dir==='jv'?'Việt':'Nhật'}</p>${prompt}<div class="sentence-answer" aria-label="Câu của bạn">${st.chosen.map(i=>chip(i,'answer')).join('')}</div><div class="sentence-bank">${bank.map(c=>chip(c.i,'bank')).join('')}</div><div id="sentence-result"></div><div class="actions"><button type="button" id="sentence-check" ${st.chosen.length&&!st.checked?'':'disabled'}>Kiểm tra</button></div>`;
+  $('#sentence-play').innerHTML=`<p>Câu ${sIndex+1}/${sentenceSet.length} · Dịch sang tiếng ${st.dir==='jv'?'Việt':'Nhật'}</p>${prompt}<div class="sentence-answer" aria-label="Câu của bạn">${st.chosen.map(i=>chip(i,'answer')).join('')}</div><div class="sentence-bank">${bank.map(c=>chip(c.i,'bank')).join('')}</div><div id="sentence-result"></div><div class="actions"><button type="button" class="secondary" id="sentence-clear" ${st.chosen.length&&!st.checked?'':'disabled'}>Xóa hết</button><button type="button" class="secondary" id="sentence-hint" ${st.checked?'disabled':''}>💡 Gợi ý</button><button type="button" id="sentence-check" ${st.chosen.length&&!st.checked?'':'disabled'}>Kiểm tra</button></div>`;
 }
+function hintSentence(st) {
+  const want=sentenceTokens(st.s,st.dir), norm=t=>st.dir==='jv'?t.toLowerCase():t, text=i=>st.chips.find(c=>c.i===i).t;
+  let n=0; while (n<st.chosen.length&&n<want.length&&norm(text(st.chosen[n]))===norm(want[n])) n++;
+  st.chosen=st.chosen.slice(0,n); if (n>=want.length) return;
+  const chip=st.chips.find(c=>!st.chosen.includes(c.i)&&norm(c.t)===norm(want[n]));
+  if (chip) { st.chosen.push(chip.i); st.hinted=true; }
+}
+const dropZone=e=>e.target.closest?.('.sentence-answer,.sentence-bank');
+$('#sentence-play').ondragstart=e=>{ const c=e.target.closest?.('[data-chip]'); if (!c||!sState||sState.checked) return; e.dataTransfer.setData('text/plain',c.dataset.chip); e.dataTransfer.effectAllowed='move'; };
+$('#sentence-play').ondragover=e=>{ if (dropZone(e)) e.preventDefault(); };
+$('#sentence-play').ondrop=e=>{
+  const zone=dropZone(e), st=sState, raw=e.dataTransfer?.getData('text/plain'); if (!zone||!st||st.checked||!raw) return; e.preventDefault();
+  const i=Number(raw); if (!st.chips.some(c=>c.i===i)) return;
+  st.chosen=st.chosen.filter(x=>x!==i);
+  if (zone.classList.contains('sentence-answer')) {
+    const target=e.target.closest('[data-chip]'), at=target&&target.dataset.zone==='answer'?st.chosen.indexOf(Number(target.dataset.chip)):-1;
+    if (at>=0) st.chosen.splice(at,0,i); else st.chosen.push(i);
+  }
+  drawSentence();
+};
 $('#sentence-play').onclick=e=>{
   const st=sState, b=e.target.closest('button'); if (!st||!b) return;
   if (b.dataset.say) return speak(st.s.tokens.join(''), Number(b.dataset.rate)||0.9);
   if (b.id==='sentence-next') { sIndex++; return showSentence(); }
   if (st.checked) return;
+  if (b.id==='sentence-clear') { st.chosen=[]; return drawSentence(); }
+  if (b.id==='sentence-hint') { hintSentence(st); return drawSentence(); }
   if (b.dataset.chip!==undefined) {
     const i=Number(b.dataset.chip);
     st.chosen = b.dataset.zone==='bank' ? [...st.chosen,i] : st.chosen.filter(x=>x!==i); drawSentence();
   } else if (b.id==='sentence-check') {
     st.checked=true; const answer=sentenceText(st.chosen.map(i=>st.chips.find(c=>c.i===i).t),st.dir), ok=answer===sentenceText(sentenceTokens(st.s,st.dir),st.dir);
-    if (ok) sScore++; const records=(store().sentences ||= {}); records[st.s.id]={...records[st.s.id],[st.dir]:ok}; markActivity(); drawSentence();
+    const credit=ok&&!st.hinted; if (credit) sScore++; const records=(store().sentences ||= {}); records[st.s.id]={...records[st.s.id],[st.dir]:credit}; markActivity(); drawSentence();
     const shown=st.dir==='jv' ? `<strong>${esc(st.s.vi)}</strong>` : `<strong>${esc(st.s.tokens.join(' '))}</strong><br>${esc(st.s.romaji)}`;
-    $('#sentence-result').innerHTML=`<p class="feedback ${ok?'correct':'incorrect'}">${ok?'Chính xác!':'Chưa đúng.'}</p><p>${shown}</p>${st.dir==='jv'?'':'<button type="button" class="secondary" data-say="1">🔊 Nghe</button> <button type="button" class="secondary" data-say="1" data-rate="0.6">🐢 Chậm</button> '}<button type="button" id="sentence-next">${sIndex+1===sentenceSet.length?'Xem kết quả':'Câu tiếp theo'}</button>`;
+    $('#sentence-result').innerHTML=`<p class="feedback ${ok?'correct':'incorrect'}">${ok?'Chính xác!':'Chưa đúng.'}</p>${ok&&st.hinted?'<p>Bạn đã dùng gợi ý nên câu này chưa được tính là thuộc.</p>':''}<p>${shown}</p>${st.dir==='jv'?'':'<button type="button" class="secondary" data-say="1">🔊 Nghe</button> <button type="button" class="secondary" data-say="1" data-rate="0.6">🐢 Chậm</button> '}<button type="button" id="sentence-next">${sIndex+1===sentenceSet.length?'Xem kết quả':'Câu tiếp theo'}</button>`;
   }
 };
 const speechNorm=t=>String(t).normalize('NFC').replace(/[\s、。，．,.?？!！「」]/g,'');
@@ -432,7 +497,44 @@ function listen(it) {
   r.onend=()=>{ if (!handled) finish('<p class="feedback incorrect">Không nghe thấy giọng nói, thử lại nhé.</p><button type="button" data-pron="mic">Thử lại</button>'); };
   try { r.start(); } catch { finish('<p class="feedback incorrect">Không thể bật micro.</p>'); }
 }
-function showQuestion(){if(current>=questions.length){$('#quiz-play').innerHTML=`<h3>Hoàn thành! 🎉</h3><p>Bạn trả lời đúng/nhớ được ${score}/${questions.length} câu.</p><p>Chọn lại cài đặt và bắt đầu để luyện thêm.</p>`;return;} const q=questions[current], labels={japanese:'Tiếng Nhật',romaji:'Romaji',meaning:'Tiếng Việt'}; if(q.format==='typing')return showTyping(q); if(q.format==='flashcard')return showFlash(q); $('#quiz-play').innerHTML=`<p>Câu ${current+1}/${questions.length} · ${labels[q.from]} → ${labels[q.to]}</p><h2>${esc(q.word[q.from])}</h2><button class="secondary" id="quiz-speak">🔊 Phát âm</button><div>${q.choices.map((x,i)=>`<button class="choice" data-choice="${i}">${esc(x)}</button>`).join('')}</div><div id="answer"></div>`; $('#quiz-speak').onclick=()=>speak(q.word.japanese); $('#quiz-play').querySelectorAll('[data-choice]').forEach(b=>b.onclick=()=>{ const correct=q.choices[Number(b.dataset.choice)]===q.word[q.to]; if(correct)score++; record(q.word,correct); $('#quiz-play').querySelectorAll('[data-choice]').forEach(x=>{ x.disabled=true; if(q.choices[Number(x.dataset.choice)]===q.word[q.to]) x.classList.add('correct'); else if(x===b) x.classList.add('incorrect'); }); $('#answer').innerHTML=`<p class="feedback ${correct?'correct':'incorrect'}">${correct?'Chính xác!':'Chưa đúng. Đáp án: '+esc(q.word[q.to])}</p><button id="next">${current+1===questions.length?'Xem kết quả':'Câu tiếp theo'}</button>`; $('#next').onclick=()=>{current++;showQuestion();}; }); }
+if (typeof document.addEventListener === 'function') document.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented) return;
+  const tag = e.target?.tagName || ''; if (/^(INPUT|TEXTAREA|SELECT)$/.test(tag)) return;
+  const press = sel => { const el = document.querySelector(sel); if (el && !el.disabled) { e.preventDefault(); el.click(); return true; } return false; };
+  if (!$('#quiz').hidden) {
+    if (/^[1-9]$/.test(e.key)) {
+      if (press(`#quiz-play [data-choice="${Number(e.key) - 1}"]`)) return;
+      if (e.key === '1') press('#forgot'); else if (e.key === '2') press('#knew');
+    } else if (e.key === 'Enter' && tag !== 'BUTTON') press('#next') || press('#flip');
+  } else if (!$('#sentences').hidden && e.key === 'Enter' && tag !== 'BUTTON') press('#sentence-next') || press('#sentence-check');
+});
+function showQuestion() {
+  if (current >= questions.length) {
+    $('#quiz-play').innerHTML = `<h3>Hoàn thành! 🎉</h3><p>Bạn trả lời đúng/nhớ được ${score}/${questions.length} câu.</p><p>Chọn lại cài đặt và bắt đầu để luyện thêm.</p>`;
+    return;
+  }
+  const q = questions[current], labels = {japanese:'Tiếng Nhật', romaji:'Romaji', meaning:'Tiếng Việt'};
+  if (q.format === 'typing') return showTyping(q);
+  if (q.format === 'flashcard') return showFlash(q);
+  const choices = q.choices.map((x, i) => `<button class="choice" data-choice="${i}"><span class="kbd">${i + 1}</span>${esc(x)}</button>`).join('');
+  $('#quiz-play').innerHTML = `<p>Câu ${current + 1}/${questions.length} · ${labels[q.from]} → ${labels[q.to]}</p><h2>${esc(q.word[q.from])}</h2><button class="secondary" id="quiz-speak" ${q.to === 'japanese' ? 'hidden' : ''}>🔊 Phát âm</button><div>${choices}</div><div id="answer"></div>`;
+  $('#quiz-speak').onclick = () => speak(q.word.japanese);
+  const buttons = $('#quiz-play').querySelectorAll('[data-choice]');
+  buttons.forEach(b => b.onclick = () => {
+    const correct = q.choices[Number(b.dataset.choice)] === q.word[q.to];
+    if (correct) score++;
+    record(q.word, correct);
+    buttons.forEach(x => {
+      x.disabled = true;
+      if (q.choices[Number(x.dataset.choice)] === q.word[q.to]) x.classList.add('correct');
+      else if (x === b) x.classList.add('incorrect');
+    });
+    $('#quiz-speak').hidden = false;
+    $('#answer').innerHTML = `<p class="feedback ${correct ? 'correct' : 'incorrect'}">${correct ? 'Chính xác!' : 'Chưa đúng. Đáp án: ' + esc(q.word[q.to])}</p><button id="next">${current + 1 === questions.length ? 'Xem kết quả' : 'Câu tiếp theo'}</button>`;
+    $('#next').onclick = () => { current++; showQuestion(); };
+    $('#next').focus?.();
+  });
+}
 
 
 
@@ -469,3 +571,4 @@ if (sharedMode) {
     status('Đã kết nối Learning Together');
   }).catch(e => status('Không thể tải dữ liệu chung: ' + e.message));
 } else restoreSession();
+if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator && typeof location !== 'undefined' && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});

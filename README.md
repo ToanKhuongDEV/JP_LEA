@@ -1,4 +1,4 @@
-﻿# Nhật ký từ vựng
+# Nhật ký từ vựng
 
 Web tĩnh học từ tiếng Nhật, lưu dữ liệu riêng của người dùng trong Google Drive. Không cần backend hoặc database.
 
@@ -35,3 +35,21 @@ Google: https://developers.google.com/workspace/drive/api/guides/appdata và htt
 Với bản triển khai Apps Script đã có, cập nhật `Code.gs`, thêm `Bridge`, rồi vào **Triển khai → Quản lý các tùy chọn triển khai → Chỉnh sửa**, chọn **Phiên bản mới** và triển khai. Không chạy lại `setup`: dữ liệu chung hiện có được giữ lại. Sau đó cập nhật website GitHub Pages. Giao diện Learning Together trên website dùng chung mã giao diện với khu vực cá nhân.
 
 Mọi người có URL đều có thể đọc, thêm, sửa và xóa dữ liệu chung; đường dẫn không phải mật khẩu. Hãy chỉ lưu nội dung công khai và sao lưu thường xuyên bằng nút tải bản sao. Khi hai người cùng sửa, bản lưu cũ bị từ chối: tải bản sao để giữ thay đổi rồi tải lại trang trước khi sửa tiếp. Google áp dụng [hạn mức Apps Script](https://developers.google.com/apps-script/guides/services/quotas); dữ liệu chung được giới hạn khoảng 3 triệu ký tự. Bảng tính lưu dữ liệu ở dạng JSON chia thành nhiều ô, không phải bảng từ vựng có thể sửa trực tiếp.
+
+## Dùng như ứng dụng và ngoại tuyến
+
+Khi chạy trên HTTPS (GitHub Pages), trang có `manifest.json` và service worker `sw.js`, nên có thể "Cài đặt ứng dụng"/"Thêm vào màn hình chính". Các tệp giao diện được lưu để mở lại khi mất mạng; đồng bộ Drive/Google Sheets vẫn cần mạng. Workflow thay `__BUILD__` bằng mã commit ở `index.html` và `sw.js`, nên mỗi lần triển khai người dùng tự nhận bản mới (không cần sửa `?v=` thủ công).
+
+## Phím tắt khi luyện tập
+
+- Trắc nghiệm: `1`–`4` chọn đáp án; `Enter` sang câu tiếp.
+- Flashcard: `Enter` lật thẻ; `1` = chưa nhớ, `2` = đã nhớ.
+- Ghép câu: `Enter` kiểm tra/câu tiếp theo; có thể kéo-thả thẻ, dùng "Xóa hết" và "Gợi ý" (câu dùng gợi ý không được tính là thuộc).
+
+## Đồng bộ nhiều thiết bị
+
+Nếu Drive đã đổi ở thiết bị khác, ứng dụng tự hợp nhất (từ, nhóm và tiến độ học) rồi mới lưu, thay vì từ chối lưu.
+
+## Phát triển
+
+`node <tên>.test.cjs` chạy từng bộ kiểm thử (xem danh sách trong `.github/workflows/deploy.yml`). Sau khi sửa `index.html`, `app.js` hoặc `style.css`, chạy `node together/build.cjs` (hoặc `node together.test.cjs`) để tạo lại `together/Index.html`.

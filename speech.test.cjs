@@ -115,7 +115,7 @@ const btn = dataset => ({dataset, id:dataset.id||''});
   pclick('next');
   assert(element('#pron-play').innerHTML.includes('Hoàn thành'));
   // word-level pronunciation with kana + kanji targets
-  element('#pron-form').onsubmit({preventDefault(){}, target:{elements:{source:{value:'tokens'},count:{value:'30'},level:{value:'1'}}}});
+  element('#pron-form').onsubmit({preventDefault(){}, target:{elements:{source:{value:'tokens'},count:{value:'300'},level:{value:'1'}}}});
   await tick(); await tick();
   const words = run('pron.items');
   assert(words.length > 3 && words.every(w=>[...w.text].length>=2 && w.romaji));
