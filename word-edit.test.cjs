@@ -1,0 +1,25 @@
+const fs = require('fs');
+const vm = require('vm');
+const assert = require('assert');
+const elements = new Map();
+const element = key => {
+  if (!elements.has(key)) elements.set(key, {value:'', hidden:true, innerHTML:'', textContent:'', addEventListener(){}, querySelectorAll:()=>[], showModal(){}, close(){}, reset(){}});
+  return elements.get(key);
+};
+const context = {document:{querySelector:element, querySelectorAll:()=>[]}, window:{addEventListener(){}}, localStorage:{getItem:()=>null}, crypto:{randomUUID:()=> 'new'}, setTimeout, clearTimeout, Blob, URL};
+vm.runInNewContext(fs.readFileSync('app.js','utf8').replace(/^import[^\n]+\n/, 'const CLIENT_ID = "";\n'), context);
+vm.runInNewContext(`data={version:1,groups:[],words:[{id:'a',japanese:'えんぴす',romaji:'enpi',meaning:'',groups:[]},{id:'b',japanese:'えんぴ',romaji:'enpi',meaning:'',groups:[]}]}; save=()=>{};`, context);
+const form = element('#word-form');
+form.elements = {japanese:{value:''}, romaji:{value:''}, meaning:{value:''}};
+vm.runInNewContext('openWord(data.words[0])', context);
+form.elements.japanese.value = 'えんぴ';
+form.onsubmit({preventDefault(){},target:form});
+assert.strictEqual(vm.runInNewContext('data.words[0].japanese', context), 'えんぴ');
+assert.strictEqual(vm.runInNewContext('data.words.length', context), 2);
+element('#add-word').onclick();
+form.elements.japanese.value = 'えんぴ';
+form.elements.romaji.value = 'enpi';
+form.onsubmit({preventDefault(){},target:form});
+assert.strictEqual(vm.runInNewContext('data.words.length', context), 2);
+assert(element('#toast').textContent.includes('đã có'));
+console.log('Word editing checks passed');
